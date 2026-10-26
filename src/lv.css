@@ -1,0 +1,295 @@
+/* ===== Lava stones portfolio UI ===== */
+/* instant loading screen: shown from the first bytes, fades with the scene's intro veil */
+#boot { position: fixed; inset: 0; z-index: 40; display: grid; place-content: center; justify-items: center; gap: 9px; background: radial-gradient(ellipse at 50% 60%, #1f0d06, #070302 75%); color: #fff2e6; font-family: 'Inter', system-ui, sans-serif; transition: opacity 0.5s ease; }
+#boot b { font: 800 30px/1 'Syne', 'Inter', system-ui, sans-serif; letter-spacing: -0.02em; }
+#boot span { font: 600 10.5px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.2em; text-transform: uppercase; color: #ffc872; }
+/* a real fill bar paced to a phone's load; it runs on the compositor, so it keeps moving while the scene is being built */
+#boot i { position: relative; width: 170px; height: 3px; margin-top: 12px; border-radius: 3px; background: rgba(255, 200, 140, 0.14); overflow: hidden; }
+#boot i::after { content: ''; position: absolute; inset: 0; border-radius: 3px; background: linear-gradient(90deg, #ff5a1a, #ffc872); box-shadow: 0 0 10px rgba(255, 140, 50, 0.8);
+  transform-origin: 0 50%; transform: scaleX(0.02); animation: boot-fill 14s cubic-bezier(0.2, 0.6, 0.35, 1) forwards; }
+@keyframes boot-fill { 0% { transform: scaleX(0.02); } 14% { transform: scaleX(0.35); } 36% { transform: scaleX(0.7); } 62% { transform: scaleX(0.88); } 100% { transform: scaleX(0.96); } }
+#boot.done i::after { animation: none; transform: scaleX(1); transition: transform 0.25s ease-out; }
+#boot.gone { opacity: 0; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { #boot i::after { animation: none; transform: scaleX(0.6); } }
+:root {
+  --lv-bg: rgba(18, 8, 4, 0.82);
+  --lv-bg-2: rgba(255, 140, 60, 0.07);
+  --lv-line: rgba(255, 150, 70, 0.22);
+  --lv-line-2: rgba(255, 160, 80, 0.55);
+  --lv-text: #fff2e6;
+  --lv-mute: #dcbfa8;
+  --lv-ember: #ff6a1a;
+  --lv-flame: #ff9a3d;
+  --lv-gold: #ffc872;
+  --lv-ink: #1c0b03;
+  --lv-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  /* chrome (top buttons, sound, theme column, title line) follows the theme: accent, glass tint, text tint */
+  --acc: 255, 150, 70; --glass: 20, 10, 6; --acc-text: #ffc872;
+}
+html[data-theme="snow"] { --acc: 200, 228, 255; --glass: 28, 38, 52; --acc-text: #dcefff; }
+html[data-theme="stone"] { --acc: 240, 200, 140; --glass: 58, 38, 18; --acc-text: #ffe4b8; }
+html[data-theme="water"] { --acc: 110, 205, 255; --glass: 8, 36, 56; --acc-text: #c4ecff; }
+html[data-theme="electric"] { --acc: 130, 180, 255; --glass: 8, 12, 26; --acc-text: #bcd6ff; }
+#lv, #lv * { box-sizing: border-box; }
+#lv { position: fixed; inset: 0; z-index: 22; pointer-events: none; color: var(--lv-text); font-family: 'Inter', system-ui, sans-serif; }
+:where(#lv) button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+#lv :focus-visible { outline: 2px solid var(--lv-gold); outline-offset: 3px; }
+.lv-mono { font-family: 'JetBrains Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; }
+#lv svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* brand */
+.lv-brand { position: absolute; left: max(20px, env(safe-area-inset-left)); top: max(16px, env(safe-area-inset-top)); text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6); animation: lv-rise 1.2s var(--lv-ease) 0.3s backwards; }
+.lv-brand b { display: block; font: 800 22px/1 'Syne', 'Inter', sans-serif; letter-spacing: -0.02em; }
+.lv-brand span { display: block; margin-top: 7px; font-size: 10.5px; color: var(--acc-text); transition: color 0.4s; }
+/* bright skies (snow, stone, water): a tighter shadow keeps the name crisp */
+html[data-theme]:not([data-theme="fire"]):not([data-theme="electric"]) .lv-brand { text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6), 0 2px 14px rgba(0, 0, 0, 0.45); }
+
+/* top-right quick actions (sound button is the scene's own, at the far right) */
+.lv-quick { position: absolute; top: max(14px, env(safe-area-inset-top)); right: calc(max(18px, env(safe-area-inset-right)) + 54px); display: flex; gap: 8px; pointer-events: auto; animation: lv-rise 1.2s var(--lv-ease) 0.45s backwards; }
+.lv-qb { position: relative; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: var(--acc-text); text-decoration: none;
+  background: rgba(var(--glass), 0.8); border: 1px solid rgba(var(--acc), 0.32); box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35); transition: transform 0.2s var(--lv-ease), box-shadow 0.25s, border-color 0.2s, background 0.4s, color 0.4s; }
+.lv-qb:hover { transform: translateY(-2px); border-color: rgba(var(--acc), 0.8); box-shadow: 0 0 22px rgba(var(--acc), 0.45); }
+.lv-qb .tip { position: absolute; top: calc(100% + 8px); right: 50%; transform: translate(50%, -4px); padding: 5px 9px; border-radius: 6px; white-space: nowrap; font: 600 10px 'JetBrains Mono', monospace; letter-spacing: 0.06em; text-transform: uppercase; color: var(--lv-text); background: rgba(10, 4, 2, 0.85); opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; }
+@media (hover: hover) { .lv-qb:hover .tip { opacity: 1; transform: translate(50%, 0); } }
+
+/* waypoint labels over the stones */
+.lv-label { position: absolute; left: 0; top: 0; pointer-events: none; display: flex; flex-direction: column; align-items: center; transform: translate3d(-200px, -200px, 0); opacity: 0; transition: opacity 0.12s; will-change: transform; }
+.lv-label.show { opacity: 1; pointer-events: auto; transition-duration: 0.2s; }
+.lv-label.show .lv-pill { animation: lv-pill-in 0.24s var(--lv-ease) both; }
+.lv-label.pop .lv-pill { animation: lv-pill-pop 0.22s ease-out both; }
+.lv-label.pop { opacity: 1; }
+.lv-label.ghost { pointer-events: auto; }
+@keyframes lv-pill-in { from { opacity: 0; transform: translateY(6px) scale(0.9); } to { opacity: 1; transform: none; } }
+@keyframes lv-pill-pop { to { opacity: 0; transform: scale(1.35); } }
+.lv-label.hide { opacity: 0 !important; }   /* fades only: the hovered label must keep its hover while its stone rises */
+.lv-pill { display: flex; align-items: center; gap: 8px; padding: 7px 12px 7px 10px; border-radius: 999px; font-size: 10.5px; white-space: nowrap; color: var(--lv-text);
+  background: rgba(22, 9, 4, 0.88); border: 1px solid var(--lv-line); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); transition: border-color 0.25s, box-shadow 0.25s, transform 0.3s var(--lv-ease); }
+.lv-pill i { font-style: normal; color: var(--lv-flame); }
+.lv-pill .dot { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--lv-flame); box-shadow: 0 0 10px rgba(255, 106, 26, 0.8);
+  background: conic-gradient(var(--lv-gold) calc(var(--p, 0) * 1turn), transparent 0); }
+.lv-label:hover .lv-pill, .lv-label:focus-visible .lv-pill { border-color: var(--lv-line-2); transform: translateY(-3px); box-shadow: 0 0 26px rgba(255, 106, 26, 0.45); }
+.lv-label.seen .dot { background: var(--lv-gold); border-color: var(--lv-gold); animation: none; }
+.lv-label.seen .lv-pill { color: var(--lv-mute); }
+.lv-stem { width: 1px; height: 26px; background: linear-gradient(var(--lv-flame), rgba(255, 106, 26, 0)); }
+@keyframes lv-beat { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 106, 26, 0.7); } 60% { box-shadow: 0 0 0 7px rgba(255, 106, 26, 0); } }
+
+/* steam tether between stone and card */
+.lv-tether { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.lv-tether path { fill: none; stroke: url(#lv-grad); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 3 9; animation: lv-flow 0.9s linear infinite; opacity: 0; transition: opacity 0.35s; }
+.lv-tether path.on { opacity: 1; }
+@keyframes lv-flow { to { stroke-dashoffset: -12; } }
+
+/* info cards that condense out of the steam */
+.lv-card { position: absolute; left: 0; top: 0; width: 360px; max-width: calc(100vw - 24px); pointer-events: none; visibility: hidden; opacity: 0;
+  transform: translate3d(var(--x, -999px), var(--y, -999px), 0); will-change: transform; }
+/* solid dark glass (a live backdrop blur over the moving 3D scene is what dropped frames) */
+.lv-card .in { position: relative; border-radius: 18px; padding: 16px 16px 12px; background: rgba(20, 9, 4, 0.93);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 90, 20, 0.14), inset 0 1px 0 rgba(255, 200, 140, 0.12); overflow: hidden; }
+.lv-card .in::before { content: ''; position: absolute; inset: 0; padding: 1px; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(160deg, var(--lv-gold), rgba(255, 150, 70, 0.18) 35%, rgba(255, 150, 70, 0.12) 70%, var(--lv-ember));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+.lv-card .in::after { content: ''; position: absolute; left: -20%; right: -20%; bottom: -60px; height: 120px; pointer-events: none; background: radial-gradient(closest-side, rgba(255, 110, 30, 0.22), transparent); }
+.lv-card.on { visibility: visible; opacity: 1; }
+/* the full card bursts out of the small popup: springs open from its bottom centre */
+.lv-card .in { transform-origin: 50% 100%; }
+.lv-card.on .in { animation: lv-burst 0.5s cubic-bezier(0.2, 1.35, 0.4, 1) both; }
+.lv-card.on .rv { animation: lv-line 0.6s var(--lv-ease) both; animation-delay: calc(0.12s + var(--d, 0) * 0.06s); }
+.lv-card.out { visibility: visible; opacity: 1; }
+.lv-card.out .in { animation: lv-evap 0.14s ease-in both; }
+/* rises out of the steam: opacity + transform only, so it stays on the GPU's cheap path */
+@keyframes lv-burst { 0% { opacity: 0; transform: translateY(16px) scale(0.3); } 55% { opacity: 1; } 100% { opacity: 1; transform: none; } }
+@keyframes lv-evap { to { opacity: 0; transform: translateY(-14px) scale(0.97); } }
+@keyframes lv-line { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes lv-rise { from { opacity: 0; transform: translateY(12px); } }
+.lv-card .k { display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: var(--lv-flame); }
+.lv-card .k em { font-style: normal; color: var(--lv-mute); opacity: 0.8; }
+.lv-card h3 { margin: 6px 0 10px; font: 800 21px/1.05 'Syne', 'Inter', sans-serif; letter-spacing: -0.03em;
+  background: linear-gradient(95deg, #fff3e6, var(--lv-gold) 55%, var(--lv-flame)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* content scrolls only if it must, with no visible scrollbar: a soft fade shows there is more */
+.lv-scroll { max-height: var(--mh, 60vh); overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: none; -ms-overflow-style: none; }
+.lv-scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }
+.lv-scroll.more { -webkit-mask-image: linear-gradient(#000 calc(100% - 34px), transparent); mask-image: linear-gradient(#000 calc(100% - 34px), transparent); }
+.lv-foot { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--lv-line); font-size: 9.5px; color: var(--lv-mute); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+/* previous / next between sections */
+.lv-nav { display: flex; align-items: center; gap: 6px; pointer-events: auto; }
+.lv-nav button { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; border: 1px solid var(--lv-line); color: var(--lv-mute); transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.15s; }
+.lv-nav button:hover { color: var(--lv-text); border-color: var(--lv-line-2); background: rgba(255, 106, 26, 0.14); }
+.lv-nav button:active { transform: scale(0.92); }
+.lv-nav svg.i { width: 14px !important; height: 14px !important; }
+.lv-nav b { min-width: 34px; text-align: center; font-weight: 500; color: var(--lv-mute); }
+/* experience: company, role and years on a timeline */
+.lv-tl { list-style: none; margin: 0; padding: 0 0 0 18px; position: relative; display: grid; gap: 4px; }
+.lv-tl::before { content: ''; position: absolute; left: 4px; top: 10px; bottom: 10px; width: 1px; background: linear-gradient(var(--lv-flame), rgba(255, 150, 70, 0.15)); }
+.lv-tl li { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid transparent; transition: background 0.25s, border-color 0.25s, transform 0.25s var(--lv-ease); }
+.lv-tl li::before { content: ''; position: absolute; left: -18px; top: 50%; width: 9px; height: 9px; margin-top: -4.5px; border-radius: 50%; background: var(--lv-ink); border: 1.5px solid var(--lv-flame); }
+.lv-tl li.now::before { background: var(--lv-gold); border-color: var(--lv-gold); box-shadow: 0 0 12px var(--lv-flame); animation: lv-beat 2.2s infinite; }
+.lv-tl li:hover { background: var(--lv-bg-2); border-color: var(--lv-line); transform: translateX(3px); }
+.lv-tl .co b { display: block; font-size: 14px; font-weight: 600; line-height: 1.25; }
+.lv-tl .co span { display: block; margin-top: 2px; font-size: 12px; color: var(--lv-mute); }
+.lv-tl time { flex: none; font-size: 9.5px; color: var(--lv-gold); text-align: right; }
+.lv-card.pinned .lv-foot .p1, .lv-card:not(.pinned) .lv-foot .p2 { display: none; }
+.lv-x { pointer-events: auto; position: absolute; top: 12px; right: 12px; width: 30px; height: 30px; border-radius: 9px; display: none; place-items: center; border: 1px solid var(--lv-line); color: var(--lv-mute); }
+.lv-card.pinned .lv-x { display: grid; }
+.lv-card.pinned .k { padding-right: 38px; }
+.lv-x:hover { color: var(--lv-text); border-color: var(--lv-line-2); }
+
+/* wide cards (projects, skills): two columns so they fit above the stone without scrolling */
+.lv-card.wide { width: 600px; }
+.lv-card.wide .lv-scroll { column-count: 2; column-gap: 22px; max-height: none; overflow: visible; -webkit-mask-image: none; mask-image: none; }   /* balanced columns, never a hidden third */
+.lv-card.wide .lv-row, .lv-card.wide .lv-grp { break-inside: avoid; -webkit-column-break-inside: avoid; }
+.lv-card.wide .lv-row { flex-direction: column; gap: 2px; padding: 0 0 12px; border-top: 0; }
+.lv-card.wide .lv-yr { width: auto; padding-top: 0; }
+.lv-card.wide .lv-grp { margin: 0 0 10px; }
+/* touch: a tapped card stays open, so it may be swiped to scroll (still no visible bar) */
+@media (hover: none) { .lv-card.on { pointer-events: auto; } }
+
+/* card content pieces */
+.lv-row { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid rgba(255, 150, 70, 0.12); }
+.lv-row:first-child { border-top: 0; padding-top: 0; }
+.lv-yr { flex: none; width: 74px; font: 500 10px/1.5 'JetBrains Mono', monospace; color: var(--lv-gold); letter-spacing: 0.04em; padding-top: 2px; }
+.lv-row b { display: block; font-size: 13.5px; font-weight: 600; line-height: 1.35; }
+.lv-row span { display: block; margin-top: 3px; font-size: 12px; line-height: 1.45; color: var(--lv-mute); }
+.lv-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.lv-tag { padding: 3px 7px; border-radius: 5px; font: 500 9.5px 'JetBrains Mono', monospace; letter-spacing: 0.05em; text-transform: uppercase; color: var(--lv-gold); background: rgba(255, 150, 70, 0.1); border: 1px solid var(--lv-line); }
+.lv-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-bottom: 12px; }
+.lv-stats div { padding: 9px 6px 8px; border-radius: 11px; text-align: center; background: var(--lv-bg-2); border: 1px solid var(--lv-line); }
+.lv-stats b { display: block; font: 800 17px/1 'Syne', sans-serif; color: var(--lv-gold); font-variant-numeric: tabular-nums; }
+.lv-stats span { display: block; margin-top: 5px; font-size: 9px; line-height: 1.25; color: var(--lv-mute); }
+.lv-ladder { display: flex; align-items: center; gap: 6px; margin: 0 0 12px; font-size: 11.5px; flex-wrap: wrap; }
+.lv-ladder span { padding: 5px 9px; border-radius: 999px; border: 1px solid var(--lv-line); color: var(--lv-mute); }
+.lv-ladder span:last-child { color: var(--lv-ink); font-weight: 600; border-color: transparent; background: linear-gradient(135deg, var(--lv-gold), var(--lv-flame)); }
+.lv-ladder i { font-style: normal; color: var(--lv-flame); }
+.lv-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.lv-list li { position: relative; padding-left: 15px; font-size: 12.5px; line-height: 1.5; color: #f1dccb; }
+.lv-list li::before { content: ''; position: absolute; left: 0; top: 7px; width: 6px; height: 6px; border-radius: 50%; background: var(--lv-ember); box-shadow: 0 0 8px var(--lv-ember); }
+.lv-grp { margin-top: 9px; }
+.lv-grp:first-child { margin-top: 0; }
+.lv-grp small { display: block; margin-bottom: 6px; font-size: 9.5px; color: var(--lv-flame); }
+.lv-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.lv-chips span { padding: 4px 8px; border-radius: 7px; font-size: 11px; background: var(--lv-bg-2); border: 1px solid var(--lv-line); transition: border-color 0.2s, background 0.2s; }
+.lv-chips span:hover { border-color: var(--lv-flame); background: rgba(255, 106, 26, 0.18); }
+.lv-lang { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.lv-lang div { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; padding: 10px 12px; border-radius: 12px; background: var(--lv-bg-2); border: 1px solid var(--lv-line); }
+.lv-lang b { font-size: 14px; font-weight: 600; }
+.lv-lang span { font-size: 14px; line-height: 1.2; color: var(--lv-gold); font-family: 'Nirmala UI', 'Noto Sans', system-ui, sans-serif; }
+
+/* discovery tracker (pager dots): hidden; it only comes back when there is no 3D scene, as the way to open the CV */
+.lv-track { display: none !important; }
+#lv.nogl .lv-track { display: flex !important; }
+.lv-track { position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; align-items: center; gap: 14px; padding: 9px 10px 9px 16px; border-radius: 999px; pointer-events: auto; white-space: nowrap;
+  background: rgba(20, 9, 4, 0.9); border: 1px solid var(--lv-line); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); animation: lv-rise 1.2s var(--lv-ease) 1s backwards; transition: border-color 0.4s, box-shadow 0.4s; }
+.lv-track p { margin: 0; font-size: 10.5px; color: var(--lv-mute); }
+.lv-track p b { color: var(--lv-gold); font-weight: 600; }
+.lv-dots { display: flex; gap: 4px; }
+.lv-dots button { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; }
+.lv-dots button::before { content: ''; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid rgba(255, 150, 70, 0.6); transition: all 0.4s var(--lv-ease); }
+.lv-dots button:hover::before { border-color: var(--lv-gold); transform: scale(1.25); }
+.lv-dots button.seen::before { background: var(--lv-gold); border-color: var(--lv-gold); box-shadow: 0 0 12px var(--lv-flame); }
+.lv-track.done { border-color: var(--lv-line-2); box-shadow: 0 0 40px rgba(255, 106, 26, 0.35); }
+.lv-contact { display: none; gap: 6px; }
+.lv-track.done .lv-contact { display: flex; }
+.lv-cbtn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border-radius: 999px; font-size: 11.5px; font-weight: 600; text-decoration: none; color: var(--lv-ink); background: linear-gradient(135deg, var(--lv-gold), var(--lv-flame) 55%, var(--lv-ember)); box-shadow: 0 4px 18px rgba(255, 106, 26, 0.4); transition: transform 0.2s var(--lv-ease); }
+.lv-cbtn.ghost { color: var(--lv-text); background: transparent; border: 1px solid var(--lv-line-2); box-shadow: none; }
+.lv-cbtn:hover { transform: translateY(-2px); }
+
+.lv-toast { position: fixed; left: 50%; top: 72px; z-index: 31; transform: translate(-50%, -8px); opacity: 0; padding: 9px 15px; border-radius: 10px; font-size: 12px; color: var(--lv-text); background: rgba(18, 8, 4, 0.92); border: 1px solid var(--lv-line-2); pointer-events: none; transition: all 0.3s var(--lv-ease); }
+.lv-toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+/* scene chrome: the sound button lines up with the quick actions; fire colours only in the Fire theme */
+#btn-audio { top: max(14px, env(safe-area-inset-top)) !important; right: max(18px, env(safe-area-inset-right)) !important; width: 44px !important; height: 44px !important; }
+#btn-audio { background: rgba(var(--glass), 0.8) !important; border: 1px solid rgba(var(--acc), 0.32) !important; color: var(--acc-text) !important; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35) !important; transition: background 0.4s, box-shadow 0.4s, color 0.4s, transform 0.15s !important; }
+#btn-audio[aria-pressed="true"] { background: rgba(var(--acc), 0.26) !important; box-shadow: 0 0 22px rgba(var(--acc), 0.4) !important; }
+#btn-audio:hover { border-color: rgba(var(--acc), 0.8) !important; }
+html[data-theme="fire"] .frost-vignette { background: linear-gradient(to bottom, rgba(40, 14, 4, 0.35) 0%, transparent 24%, transparent 74%, rgba(20, 6, 2, 0.45) 100%) !important; }
+
+/* themes: a slim column at the bottom right (the bottom centre belongs to the stone tracker), names pop out to the left */
+#mini-ui { flex-direction: column; left: auto; right: max(18px, env(safe-area-inset-right)); top: auto; bottom: max(18px, env(safe-area-inset-bottom)); transform: none; gap: 4px; padding: 5px; z-index: 23; }
+.theme-btn { width: 44px; height: 44px; }
+.theme-name { display: block; bottom: auto; top: 50%; left: auto; right: calc(100% + 12px); transform: translate(4px, -50%); }
+@media (hover: hover) { .theme-btn:hover .theme-name { opacity: 1; transform: translate(0, -50%); } }
+#mini-ui { background: rgba(var(--glass), 0.72) !important; border: 1px solid rgba(var(--acc), 0.25) !important; transition: background 0.4s, border-color 0.4s; }
+@media (max-width: 700px), (max-height: 500px) and (orientation: landscape) {
+  #mini-ui { right: max(10px, env(safe-area-inset-right)); bottom: max(14px, env(safe-area-inset-bottom)); gap: 2px; padding: 4px; }
+  .theme-btn { width: 36px; height: 36px; } .theme-btn svg { width: 18px; height: 18px; }
+  .theme-name { display: none; }
+}
+/* phones upright: the picker folds into one button (the current theme) in the bottom-right corner;
+   a tap fans the other themes out upwards, picking one folds it back */
+@media (max-width: 700px) and (orientation: portrait) {
+  #mini-ui { padding: 3px; bottom: max(16px, env(safe-area-inset-bottom)); }
+  .theme-btn { width: 40px; height: 40px; }
+  .theme-btn[aria-checked="true"] { order: 9; }
+  #mini-ui:not(.open) .theme-btn[aria-checked="false"] { display: none; }
+  #mini-ui.open { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45); }
+  .lv-back .long { display: none; }
+}
+
+/* the CV lives in the lava: other themes hide the stones' labels, cards and tracker, and offer a way back */
+html:not([data-theme="fire"]) #lv-labels, html:not([data-theme="fire"]) .lv-card, html:not([data-theme="fire"]) .lv-tether, html:not([data-theme="fire"]) .lv-track {
+  opacity: 0 !important; visibility: hidden; pointer-events: none !important; transition: opacity 0.3s, visibility 0s 0.3s; }
+.lv-back { position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); transform: translate(-50%, 12px); display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; color: var(--lv-ink); background: linear-gradient(135deg, var(--lv-gold), var(--lv-flame) 55%, var(--lv-ember)); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.3s, transform 0.35s var(--lv-ease), visibility 0s 0.3s; }
+#lv .lv-back svg.i { width: 16px; height: 16px; }
+html[data-theme]:not([data-theme="fire"]) .lv-back { opacity: 1; visibility: visible; pointer-events: auto; transform: translate(-50%, 0); transition: opacity 0.3s 0.15s, transform 0.35s var(--lv-ease) 0.15s; }
+.lv-back:hover { transform: translate(-50%, -2px) !important; }
+
+@media (max-width: 700px) {
+  .lv-brand b { font-size: 19px; }
+  .lv-brand span { font-size: 9.5px; }
+  .lv-quick { gap: 6px; right: calc(max(18px, env(safe-area-inset-right)) + 50px); }
+  .lv-qb { width: 40px; height: 40px; }
+  .lv-card, .lv-card.wide { width: calc(100vw - 20px); }
+  .lv-card.wide .lv-scroll { column-count: 1; max-height: var(--mh, 60vh); overflow-y: auto; }
+  .lv-card h3 { font-size: 19px; }
+  .lv-track { gap: 8px; padding: 6px 6px 6px 12px; max-width: calc(100vw - 20px); }
+  .lv-track p { font-size: 9.5px; white-space: normal; max-width: 170px; line-height: 1.3; }
+  .lv-stats b { font-size: 15px; }
+  .lv-track.done p { display: none; }
+  .lv-dots button { width: 24px; height: 24px; }
+  .lv-pill { padding: 6px 10px 6px 8px; font-size: 9.5px; gap: 6px; }
+  .lv-pill i { display: none; }
+}
+/* touch screens: no Esc / click hints (the close button and arrows cover it) */
+@media (hover: none) { .lv-foot .p1, .lv-foot .p2 { visibility: hidden; } }
+/* narrow phones: the tracker keeps just its "n / 5" count */
+@media (max-width: 420px) { .lv-track p { font-size: 0; max-width: none; } .lv-track p b { font-size: 10px; } }
+@media (prefers-reduced-motion: reduce) {
+  #lv *, #lv *::before { animation-duration: 0.01ms !important; animation-delay: 0s !important; transition-duration: 0.01ms !important; }
+}
+
+/* the note inside the gift box: lined paper with a strip of tape, rises out of the box when it's unboxed */
+#gift-note { position: fixed; left: 0; top: 0; z-index: 35; width: min(560px, 92vw); padding: clamp(22px, 4vw, 34px) clamp(20px, 4vw, 36px) clamp(18px, 3vw, 28px); border-radius: 6px;
+  color: #3a2a1a; font-family: 'Caveat', 'Segoe Print', cursive;
+  background: repeating-linear-gradient(transparent 0 35px, rgba(110, 150, 215, 0.28) 35px 36px), #fffaf0;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45), 0 2px 0 rgba(0, 0, 0, 0.06);
+  transform: translate(var(--x, -999px), var(--y, -999px)) translateY(36px) scale(0.55) rotate(-6deg); opacity: 0; pointer-events: none;
+  transition: transform 0.5s cubic-bezier(0.2, 1.45, 0.4, 1), opacity 0.25s; }
+#gift-note.on { opacity: 1; pointer-events: auto; transform: translate(var(--x), var(--y)) rotate(-2deg); }
+#gift-note::before { content: ''; position: absolute; top: -13px; left: 50%; width: 110px; height: 28px; transform: translateX(-50%) rotate(-3deg); background: rgba(255, 214, 90, 0.78); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15); }
+#gift-note p { margin: 0; }
+.gn-hi { font-size: clamp(24px, 5vw, 34px); }
+.gn-big { font-size: clamp(46px, 12vw, 84px); font-weight: 700; line-height: 0.95; margin: 8px 0 6px !important; color: #c41e2a; }
+.gn-sig { font-size: clamp(24px, 5vw, 32px); text-align: right; margin-bottom: clamp(14px, 3vw, 22px) !important; }
+.gn-actions { display: flex; justify-content: center; }
+.gn-actions .gn-btn { flex: 0 1 260px; }
+.gn-btn { flex: 1; text-align: center; padding: 14px 12px; border-radius: 999px; font: 600 clamp(14px, 3.6vw, 17px)/1.2 'Inter', system-ui, sans-serif; text-decoration: none; color: #fff;
+  background: linear-gradient(135deg, #e2343f, #a3121d); box-shadow: 0 4px 14px rgba(196, 30, 42, 0.35); transition: transform 0.15s; }
+.gn-btn:hover { transform: translateY(-1px); }
+.gn-btn.ghost { color: #8a1c14; background: transparent; border: 1.5px solid rgba(196, 30, 42, 0.5); box-shadow: none; }
+.gn-x { position: absolute; top: 6px; right: 8px; width: 40px; height: 40px; border: 0; border-radius: 50%; background: none; color: #7a5a40; font: 400 24px/1 system-ui, sans-serif; cursor: pointer; }
+.gn-x:hover { background: rgba(122, 90, 64, 0.1); }
+#gift-note :focus-visible { outline: 2px solid #c41e2a; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { #gift-note { transition: opacity 0.2s; } }
+
+/* while the gift is up the CV stones stand down */
+html[data-gift-up] #lv-labels, html[data-gift-up] .lv-card, html[data-gift-up] .lv-tether, html[data-gift-up] .lv-back { opacity: 0 !important; visibility: hidden; pointer-events: none !important; }
+html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer-events: none !important; transition: opacity 0.35s, visibility 0s 0.35s; }
+#mini-ui { transition: opacity 0.35s, background 0.4s, border-color 0.4s; }
+
+/* the "pull the moon" hint hand */
+.lv-hand { position: fixed; left: 0; top: 0; z-index: 30; width: 56px; height: 56px; pointer-events: none; transform-origin: 50% 50%; opacity: 0; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55)); }
+.lv-hand svg { width: 100%; height: 100%; fill: rgba(255, 255, 255, 0.95); stroke: #2a1408; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+.lv-moon-note { position: fixed; z-index: 30; padding: 6px 14px 8px; border-radius: 14px; pointer-events: none; opacity: 0; white-space: nowrap;
+  font: 700 26px/1 'Caveat', 'Segoe Print', cursive; color: #3a2a1a; background: #fffaf0; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4); }
+.lv-moon-note::after { content: ''; position: absolute; left: var(--tail, 50%); bottom: -9px; width: 16px; height: 16px; margin-left: -8px; background: #fffaf0; transform: rotate(45deg); border-radius: 0 0 3px 0; }

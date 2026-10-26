@@ -1,0 +1,7 @@
+_archive/
+__pycache__/
+*.pyc
+index-debug.html
+index-timing.html
+.DS_Store
+Thumbs.db

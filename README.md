@@ -28,3 +28,12 @@ python build.py
 | `build.py` | patches the scene and assembles `index.html` |
 
 Preview locally with `python -m http.server` and open `http://localhost:8000`.
+
+## Updating the CV
+
+`Arjun_H_CV.pdf` (the download buttons) is rendered from `src/cv.html`. With the local preview running:
+
+```
+chrome --headless=new --no-pdf-header-footer --print-to-pdf=Arjun_H_CV.pdf http://localhost:8000/src/cv.html
+```
+

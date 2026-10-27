@@ -8810,7 +8810,7 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
   }
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
   const projBox = $('#lv-projects'), steamEl = document.getElementById('lv-steam');
-  let cardHover = -1, panelHover = false, panelFor = null, lastWantAt = 0;
+  let cardHover = -1, panelHover = false, panelFor = null, lastWantAt = 0, lastInsideAt = 0;
   const sentiment = (s) => /positive/i.test(s) ? 'pos' : /mixed/i.test(s) ? 'mix' : 'neg';
   function fillPanel(it) {
     steamEl.textContent = '';
@@ -8887,7 +8887,7 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
   // the card (and its floating stone) stays while the pointer is on it or on its Steam panel. Leaving either waits a
   // moment before hiding the panel, so the pointer can cross the gap between them (and reach "View on Steam")
   let hideTimer = 0;
-  const hideSoon = () => { clearTimeout(hideTimer); hideTimer = setTimeout(() => { if (cardHover !== 1 && !panelHover) hidePanel(); }, 400); };
+  const hideSoon = () => { clearTimeout(hideTimer); hideTimer = setTimeout(() => { if (cardHover !== 1 && !panelHover) hidePanel(); }, 900); };
   cards.forEach((c, i) => {
     c.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') { cardHover = i; clearTimeout(hideTimer); } });
     c.addEventListener('pointerleave', () => { if (cardHover === i) { cardHover = -1; hideSoon(); } });
@@ -8904,7 +8904,7 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
     let x, y;
     if (vw < 700) { x = 10; y = Math.max(64, (vh - ph) / 2); }   // phones: a centred pop-up over the card (closes with ×)
     else {
-      x = cr.right + 14 + pw <= vw - 10 ? cr.right + 14 : Math.max(10, cr.left - 14 - pw);
+      x = cr.right + 8 + pw <= vw - 10 ? cr.right + 8 : Math.max(10, cr.left - 8 - pw);
       y = Math.max(70, Math.min(vh - ph - 12, cr.top));
     }
     steamEl.style.transform = 'translate3d(' + Math.round(x) + 'px,' + Math.round(y) + 'px,0)';
@@ -8929,7 +8929,12 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
     for (let i = 0; i < N; i++) if (S.rocks[i] && S.rocks[i].vis && S.rocks[i].over) { natural = i; break; }
     // hover only: the card is there while the stone (or its label) is under the pointer and goes the
     // moment it leaves. Touch has no hover, so a tap on a stone shows it until the next tap.
-    let want = natural >= 0 ? natural : labelHover >= 0 ? labelHover : focusIdx >= 0 ? focusIdx : cardHover >= 0 ? cardHover : panelHover ? 1 : touchOpen;
+    // while a Steam panel is open, the Projects card and the panel are one zone: stones underneath can't take over,
+    // and there's time to travel between the two by any route (e.g. down to "View on Steam")
+    const panelOpen = steamEl.classList.contains('on');
+    if (cardHover === 1 || panelHover) lastInsideAt = now;
+    let want = panelOpen && now - lastInsideAt < 900 ? 1
+      : natural >= 0 ? natural : labelHover >= 0 ? labelHover : focusIdx >= 0 ? focusIdx : cardHover >= 0 ? cardHover : panelHover ? 1 : touchOpen;
     if (want >= 0) lastWantAt = now;                                          // last real hover / tap
     else if (active >= 0 && now - lastWantAt < 600) want = active;           // a moment's grace to move from the stone onto its card
     S.hold = want;

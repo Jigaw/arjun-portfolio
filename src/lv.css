@@ -308,3 +308,4 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
 .lv-moon-note { position: fixed; z-index: 30; padding: 6px 14px 8px; border-radius: 14px; pointer-events: none; opacity: 0; white-space: nowrap;
   font: 700 26px/1 'Caveat', 'Segoe Print', cursive; color: #3a2a1a; background: #fffaf0; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4); }
 .lv-moon-note::after { content: ''; position: absolute; left: var(--tail, 50%); bottom: -9px; width: 16px; height: 16px; margin-left: -8px; background: #fffaf0; transform: rotate(45deg); border-radius: 0 0 3px 0; }
+.lv-moon-note.below::after { bottom: auto; top: -9px; border-radius: 3px 0 0 0; }

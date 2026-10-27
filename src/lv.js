@@ -120,7 +120,8 @@
       track.classList.add('done');
       const sw = document.getElementById('btn-shockwave'); // the scene's own shockwave: the wall erupts
       if (sw) setTimeout(() => sw.click(), 300);
-      setTimeout(pointAtMoon, 900);   // then a hand shows where the next surprise is
+      // then a hand shows where the next surprise is, once the visitor has closed the card they are reading
+      (function waitForClear(n) { if (active >= 0 && n < 120) { setTimeout(() => waitForClear(n + 1), 250); return; } setTimeout(pointAtMoon, 700); })(0);
     }
   }
 
@@ -144,8 +145,10 @@
     bubble.className = 'lv-moon-note'; bubble.textContent = 'Try pulling me!';
     document.body.appendChild(bubble);
     const bw = bubble.offsetWidth, bh = bubble.offsetHeight;
-    const bx = Math.max(10, Math.min(window.innerWidth - bw - 10, M.x - bw / 2)), by = Math.max(10, M.y - bh - 34);
-    bubble.style.left = bx + 'px'; bubble.style.top = by + 'px';
+    const bx = Math.max(10, Math.min(window.innerWidth - bw - 10, M.x - bw / 2));
+    const below = M.y - bh - 34 < 70;                               // no room above (phones): sit under the moon instead
+    bubble.classList.toggle('below', below);
+    bubble.style.left = bx + 'px'; bubble.style.top = (below ? M.y + 34 : M.y - bh - 34) + 'px';
     bubble.style.setProperty('--tail', Math.max(14, Math.min(bw - 14, M.x - bx)) + 'px');
     bubble.animate([
       { opacity: 0, transform: 'translateY(8px) scale(0.8) rotate(-3deg)' },
@@ -210,7 +213,8 @@
     // the hold timer starts with the hover itself (not when the stone happens to be up), so the card
     // always bursts out the same moment after you settle on a stone
     if (want !== hov.i) { hov.i = want; hov.upAt = want >= 0 ? now : 0; }
-    const prog = hov.upAt ? Math.min(1, (now - hov.upAt) / HOLD) : 0;
+    // a tap is a deliberate pick: its card opens quicker than a mouse hover's (which waits out passing pointers)
+    const prog = hov.upAt ? Math.min(1, (now - hov.upAt) / (want >= 0 && want === touchOpen ? 320 : HOLD)) : 0;
     const held = prog >= 1;
     showCard(held ? want : -1);
     if (active >= 0 && now - shownAt > 700) markSeen(active);

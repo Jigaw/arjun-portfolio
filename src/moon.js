@@ -297,7 +297,9 @@ void main() {
           document.body.appendChild(b);
           const ms = screenOf(moonRest), bw = b.offsetWidth, bh = b.offsetHeight;
           const bx = Math.max(10, Math.min(window.innerWidth - bw - 10, ms.x - bw / 2));
-          b.style.left = bx + 'px'; b.style.top = Math.max(10, ms.y - bh - 34) + 'px';
+          const below = ms.y - bh - 34 < 70;                           // no room above (phones): under the moon
+          b.classList.toggle('below', below);
+          b.style.left = bx + 'px'; b.style.top = (below ? ms.y + 34 : ms.y - bh - 34) + 'px';
           b.style.setProperty('--tail', Math.max(14, Math.min(bw - 14, ms.x - bx)) + 'px');
           b.animate([
             { opacity: 0, transform: 'translateY(8px) scale(0.8) rotate(-3deg)' },

@@ -376,3 +376,4 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
 /* the close button is only for touch screens / phones; on desktop the panel simply follows the hover */
 .lv-steam-x { display: none; }
 @media (hover: none), (max-width: 700px) { .lv-steam-x { display: block; } }
+.lv-co-logo.ptw { width: 26px; height: 15px; -webkit-mask-image: url(assets/logos/ptw.png); mask-image: url(assets/logos/ptw.png); }

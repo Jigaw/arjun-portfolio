@@ -268,6 +268,7 @@
       if (g.logo) { const lg = el('span', 'lv-co-logo ' + g.logo); lg.setAttribute('role', 'img'); lg.setAttribute('aria-label', g.co); head.appendChild(lg); }
       else head.appendChild(el('b', null, g.co));
       if (g.note) head.appendChild(el('small', 'lv-mono', g.note));
+      if (g.logo2) { const l2 = el('span', 'lv-co-logo ' + g.logo2); l2.setAttribute('role', 'img'); l2.setAttribute('aria-label', g.logo2.toUpperCase()); head.appendChild(l2); }
       grp.appendChild(head);
       g.items.forEach((it) => {
         const row = el('button', 'lv-proj'); row.type = 'button';

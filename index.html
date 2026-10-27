@@ -619,6 +619,8 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
 .lv-steam-x { display: none; }
 @media (hover: none), (max-width: 700px) { .lv-steam-x { display: block; } }
 .lv-co-logo.ptw { width: 26px; height: 15px; -webkit-mask-image: url(assets/logos/ptw.png); mask-image: url(assets/logos/ptw.png); }
+/* the card titles carry the flame colour (the small numbered labels above them are gone) */
+.lv-card h3 { margin-top: 2px; color: var(--lv-flame); background: none !important; -webkit-text-fill-color: currentColor; }
 
 </style>
 </head>
@@ -782,7 +784,6 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
   <!-- 0 · EDUCATION -->
   <article class="lv-card" data-i="0" aria-label="Education">
     <div class="in">
-      <div class="k lv-mono rv"><span>01 · Education</span></div>
       <h3 class="rv" style="--d:1">Where it started</h3>
       <div class="lv-scroll">
         <div class="lv-row rv" style="--d:2"><div class="lv-yr">2017 – 2021</div><div><b>Bachelor of Engineering</b><span>New Horizon College of Engineering · 8 CGPA</span></div></div>
@@ -803,7 +804,6 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
   <!-- 2 · SKILLS -->
   <article class="lv-card wide" data-i="2" aria-label="Skills">
     <div class="in">
-      <div class="k lv-mono rv"><span>03 · Skills</span></div>
       <h3 class="rv" style="--d:1">The toolkit</h3>
       <div class="lv-scroll">
         <div class="lv-grp rv" style="--d:2"><small class="lv-mono">Testing</small><div class="lv-chips"><span>Manual</span><span>Game testing</span><span>Functionality</span><span>Regression</span><span>Smoke</span><span>Sanity</span><span>Ad-hoc</span><span>Re-testing</span><span>Compliance TRC/XR</span></div></div>
@@ -818,7 +818,6 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
   <!-- 3 · EXPERIENCE -->
   <article class="lv-card" data-i="3" aria-label="Experience">
     <div class="in">
-      <div class="k lv-mono rv"><span>04 · Experience</span><em>2022 – Present</em></div>
       <h3 class="rv" style="--d:1">Where I've worked</h3>
       <div class="lv-scroll">
         <ol class="lv-tl">
@@ -834,7 +833,6 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
   <!-- 4 · LANGUAGES -->
   <article class="lv-card" data-i="4" aria-label="Languages">
     <div class="in">
-      <div class="k lv-mono rv"><span>05 · Languages</span></div>
       <h3 class="rv" style="--d:1">Languages I speak</h3>
       <div class="lv-scroll">
         <div class="lv-lang">

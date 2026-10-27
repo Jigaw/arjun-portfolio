@@ -377,3 +377,5 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
 .lv-steam-x { display: none; }
 @media (hover: none), (max-width: 700px) { .lv-steam-x { display: block; } }
 .lv-co-logo.ptw { width: 26px; height: 15px; -webkit-mask-image: url(assets/logos/ptw.png); mask-image: url(assets/logos/ptw.png); }
+/* the card titles carry the flame colour (the small numbered labels above them are gone) */
+.lv-card h3 { margin-top: 2px; color: var(--lv-flame); background: none !important; -webkit-text-fill-color: currentColor; }

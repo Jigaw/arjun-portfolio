@@ -309,3 +309,56 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
   font: 700 26px/1 'Caveat', 'Segoe Print', cursive; color: #3a2a1a; background: #fffaf0; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4); }
 .lv-moon-note::after { content: ''; position: absolute; left: var(--tail, 50%); bottom: -9px; width: 16px; height: 16px; margin-left: -8px; background: #fffaf0; transform: rotate(45deg); border-radius: 0 0 3px 0; }
 .lv-moon-note.below::after { bottom: auto; top: -9px; border-radius: 3px 0 0 0; }
+
+/* ---------- Projects: grouped titles, capsule images, platform logos ---------- */
+.lv-card.on { pointer-events: auto; }   /* cards are interactive: the Projects titles open their Steam pages */
+.lv-card.lv-projects { width: 640px; }
+.lv-card.lv-projects .lv-scroll { column-count: 2; column-gap: 18px; }
+.lv-proj-grp { break-inside: avoid; -webkit-column-break-inside: avoid; margin-bottom: 10px; }
+.lv-proj-grp > small { display: block; margin: 0 0 6px; font-size: 9.5px; color: var(--lv-gold); }
+.lv-proj { display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px; margin: 0 0 4px; border-radius: 10px; text-align: left; cursor: pointer;
+  background: var(--lv-bg-2); border: 1px solid var(--lv-line) !important; transition: border-color 0.2s, background 0.2s, transform 0.15s; }
+.lv-proj:hover, .lv-proj.on { border-color: var(--lv-flame) !important; background: rgba(255, 106, 26, 0.16); transform: translateX(2px); }
+.lv-proj-img { flex: 0 0 auto; width: 92px; height: 35px; border-radius: 6px; object-fit: cover; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
+.lv-proj-img.code { display: grid; place-items: center; font-size: 9px; color: var(--lv-mute); background: repeating-linear-gradient(135deg, rgba(255, 150, 70, 0.12) 0 6px, rgba(255, 150, 70, 0.04) 6px 12px); border: 1px dashed var(--lv-line); }
+.lv-proj-name { flex: 1 1 auto; min-width: 0; font-size: 13px; font-weight: 600; line-height: 1.25; color: var(--lv-text); }
+.lv-plats { flex: 0 0 auto; display: flex; gap: 6px; color: var(--lv-mute); }
+.lv-plat { width: 15px; height: 15px; fill: currentColor; }
+.lv-plat .st { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.lv-proj:hover .lv-plats, .lv-proj.on .lv-plats { color: var(--lv-gold); }
+
+/* ---------- the Steam-style panel beside the Projects card ---------- */
+.lv-steam { position: fixed; left: 0; top: 0; z-index: 24; width: 340px; max-width: calc(100vw - 20px); max-height: calc(100vh - 90px); overflow-y: auto; overscroll-behavior: contain;
+  border-radius: 6px; color: #acb2b8; background: linear-gradient(180deg, #1f2b3a, #16202d); box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(102, 192, 244, 0.12);
+  font: 400 13px/1.45 'Inter', 'Motiva Sans', Arial, sans-serif; opacity: 0; visibility: hidden; pointer-events: none; transform: translate3d(-999px, -999px, 0);
+  transition: opacity 0.18s, visibility 0s 0.18s; scrollbar-width: thin; }
+.lv-steam.on { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 0.18s; }
+.lv-steam-img { display: block; width: 100%; height: auto; aspect-ratio: 460 / 215; object-fit: cover; }
+.lv-steam-code { display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; aspect-ratio: 460 / 160; padding: 16px; background: radial-gradient(120% 120% at 80% 0%, #4a2414, #1a0d07); }
+.lv-steam-code b { font: 800 26px/1 'Syne', 'Inter', sans-serif; color: #fff2e6; }
+.lv-steam-code span { font-size: 10px; color: #ffc872; }
+.lv-steam-body { padding: 12px 14px 14px; }
+.lv-steam-desc { margin: 0 0 12px; color: #dfe3e6; font-size: 13.5px; line-height: 1.5; }
+.lv-steam-rows { display: grid; gap: 5px; margin-bottom: 12px; }
+.lv-steam-row { display: grid; grid-template-columns: 116px 1fr; gap: 8px; align-items: baseline; }
+.lv-steam-k { font-size: 10.5px; letter-spacing: 0.03em; text-transform: uppercase; color: #556772; }
+.lv-steam-v { font-size: 12.5px; color: #8f98a0; }
+.lv-steam-v.link { color: #66c0f4; }
+.lv-steam-v .rev { font-weight: 400; }
+.rev.pos { color: #66c0f4; } .rev.mix { color: #b9a074; } .rev.neg { color: #a34c25; }
+.lv-steam-v .cnt { color: #8f98a0; }
+.lv-steam-tags small { display: block; margin-bottom: 6px; font-size: 11px; color: #556772; }
+.lv-steam-tags .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.lv-steam-tags .chips span { padding: 2px 7px; border-radius: 2px; font-size: 11px; color: #67c1f5; background: rgba(103, 193, 245, 0.2); }
+.lv-steam-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+.lv-steam-foot a { color: #fff; font-size: 12.5px; font-weight: 600; text-decoration: none; padding: 6px 10px; border-radius: 3px; background: linear-gradient(90deg, #47bfff, #1a44c2); }
+.lv-steam-foot small { font-size: 10px; color: #556772; }
+@media (max-width: 700px) {
+  .lv-card.lv-projects { width: calc(100vw - 20px); }
+  .lv-card.lv-projects .lv-scroll, .lv-card.wide .lv-scroll { column-count: auto; columns: auto; }   /* no multi-column on phones: a height-capped single column spills sideways instead of scrolling */
+  .lv-steam { width: calc(100vw - 20px); max-height: calc(100vh - 90px); }
+  .lv-steam-img { aspect-ratio: 460 / 150; }
+}
+.lv-steam-x { position: absolute; top: 6px; right: 6px; z-index: 1; width: 34px; height: 34px; border: 0; border-radius: 50%; cursor: pointer; font: 400 22px/1 system-ui, sans-serif; color: #fff; background: rgba(10, 16, 24, 0.65); }
+.lv-steam-x:hover { background: rgba(10, 16, 24, 0.9); }
+.lv-steam { position: fixed; }

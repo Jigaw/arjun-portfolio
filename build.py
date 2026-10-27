@@ -4,6 +4,9 @@ s = open('original.html', encoding='utf8').read()
 css = open('src/lv.css', encoding='utf8').read()
 html = open('src/lv.html', encoding='utf8').read()
 js = open('src/lv.js', encoding='utf8').read()
+# the Projects card data (Steam details, platforms) goes into lv.js
+import json as _json
+js = js.replace('/*PROJECTS*/null', _json.dumps(_json.load(open('src/projects.json', encoding='utf8')), ensure_ascii=False))
 
 
 def sub1(old, new, count=1):
@@ -169,6 +172,8 @@ sub1("        desertRocks.children.forEach((m) => { m.material = name === 'fire'
      "          const blockMat = (name === 'stone' || name === 'electric') && bricks.length ? bricks[(k * 7) % bricks.length].mesh.material : null;\n"
      "          m.material = name === 'fire' ? fireRockMat : blockMat || rockMat;\n"
      "        });")
+# the page's own images (Steam capsules in assets/steam) may load
+s = s.replace("img-src data: blob:;", "img-src 'self' data: blob:;", 1)
 # phones: the five stones sit in the open lava in front of the big A (3 + 2, above the tracker), never behind its legs
 sub1("      const MOBILE_ROCK_SPOTS = [[-0.6, -0.44], [0.1, -0.48], [0.62, -0.42], [-0.32, -0.62], [0.4, -0.64]];",
      "      const MOBILE_ROCK_SPOTS = [[-0.58, -0.5], [0, -0.47], [0.58, -0.5], [-0.3, -0.7], [0.3, -0.7]];   // 3 + 2 in the open lava below the A\n"

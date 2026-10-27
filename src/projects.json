@@ -1,0 +1,221 @@
+{
+ "asOf": "28 Oct 2026",
+ "groups": [
+  {
+   "co": "PTW · Side",
+   "items": [
+    {
+     "id": 1477940,
+     "name": "Unknown 9: Awakening",
+     "plats": [
+      "ps",
+      "xbox",
+      "steam"
+     ],
+     "short": "You are Haroona, a Quaestor born with the ability to venture into a mysterious dimension: the Fold. On her quest for powerful hidden knowledge, she must learn to master the powers of the Fold to fight a secret society with a hostile agenda.",
+     "release": "17 Oct, 2024",
+     "dev": "Reflector Entertainment Ltd.",
+     "pub": "BANDAI NAMCO Entertainment Inc.",
+     "reviews": [
+      {
+       "label": "All Reviews",
+       "summary": "Mixed",
+       "count": "282",
+       "tip": "55% of the 282 user reviews for this game are positive."
+      }
+     ],
+     "tags": [
+      "Female Protagonist",
+      "Action",
+      "Action-Adventure",
+      "Adventure",
+      "Third Person"
+     ]
+    },
+    {
+     "id": 1392860,
+     "name": "Little Nightmares III",
+     "plats": [
+      "ps",
+      "steam"
+     ],
+     "short": "Little Nightmares III is an atmospheric adventure game in which you follow the journey of Low and Alone, two best friends in search of a way out of the Nowhere. In 2 players online cooperation or solo with an A.I., work together to solve puzzles and survive in this nightmarish world.",
+     "release": "9 Oct, 2025",
+     "dev": "Supermassive Games",
+     "pub": "Bandai Namco Entertainment",
+     "reviews": [
+      {
+       "label": "Recent Reviews",
+       "summary": "Mixed",
+       "count": "159",
+       "tip": "59% of the 159 user reviews in the last 30 days are positive."
+      },
+      {
+       "label": "English Reviews",
+       "summary": "Mixed",
+       "count": "5,090",
+       "tip": "49% of the 5,090 user reviews in your language are positive"
+      }
+     ],
+     "tags": [
+      "Co-op",
+      "Adventure",
+      "Horror",
+      "Multiplayer",
+      "Puzzle"
+     ]
+    },
+    {
+     "id": 1368140,
+     "name": "Corsair Cove",
+     "plats": [
+      "steam"
+     ],
+     "short": "Build a sprawling pirate haven, raise a fleet to explore the high seas, and take on the Crown to keep the Age of Piracy alive! From ale to flintlock pistols, and from scallywags to swashbucklers, you’ll need to manage complex production chains and govern a rowdy crew to reign supreme over the seas!",
+     "release": "31 Jul, 2026",
+     "dev": "Limbic Entertainment",
+     "pub": "Hooded Horse",
+     "reviews": [
+      {
+       "label": "Recent Reviews",
+       "summary": "Very Positive",
+       "count": "185",
+       "tip": "82% of the 185 user reviews in the last 30 days are positive."
+      },
+      {
+       "label": "English Reviews",
+       "summary": "Very Positive",
+       "count": "1,483",
+       "tip": "86% of the 1,483 user reviews in your language are positive"
+      }
+     ],
+     "tags": [
+      "Strategy",
+      "Simulation",
+      "City Builder",
+      "Base Building",
+      "Grand Strategy"
+     ]
+    },
+    {
+     "name": "Clove",
+     "code": true,
+     "plats": [
+      "pc"
+     ],
+     "short": "Base-building, turn-based card game. Functionality and requirements testing; task assignment and the bug database."
+    },
+    {
+     "name": "Philotes",
+     "code": true,
+     "plats": [
+      "steam",
+      "pc"
+     ],
+     "short": "3D platformer with multiplayer co-op. Functionality testing on Steam and the Windows Store."
+    }
+   ]
+  },
+  {
+   "co": "Kwalee",
+   "items": [
+    {
+     "id": 3195440,
+     "name": "Welcome to Elderfield",
+     "plats": [
+      "steam"
+     ],
+     "short": "Welcome to Elderfield, a cozy horror RPG with hand-drawn art and dark lofi music. Manage your farm, befriend or romance the locals, investigate mysteries, decorate your home, fight terrifying creatures, fish, cook, seek the Old Gods, die in your sleep, and more... There's lots to do in Elderfield!",
+     "release": "10 Sep, 2026",
+     "dev": "Chris Cote",
+     "pub": "Kwalee",
+     "reviews": [
+      {
+       "label": "Recent Reviews",
+       "summary": "Mostly Positive",
+       "count": "580",
+       "tip": "76% of the 580 user reviews in the last 30 days are positive."
+      },
+      {
+       "label": "English Reviews",
+       "summary": "Very Positive",
+       "count": "1,723",
+       "tip": "90% of the 1,723 user reviews in your language are positive"
+      }
+     ],
+     "tags": [
+      "Horror",
+      "RPG",
+      "Farming Sim",
+      "Adventure",
+      "Pixel Graphics"
+     ]
+    },
+    {
+     "id": 1933000,
+     "name": "Luna Abyss",
+     "plats": [
+      "steam"
+     ],
+     "short": "Luna Abyss is a single player story driven action-adventure with fluid platforming and bullet hell combat. Follow the journey of Fawkes, a prisoner of Luna caught between a cryptic prophecy and their prison sentence.",
+     "release": "21 May, 2026",
+     "dev": "Kwalee Labs",
+     "pub": "Kwalee",
+     "reviews": [
+      {
+       "label": "Recent Reviews",
+       "summary": "Very Positive",
+       "count": "32",
+       "tip": "84% of the 32 user reviews in the last 30 days are positive."
+      },
+      {
+       "label": "All Reviews",
+       "summary": "Very Positive",
+       "count": "959",
+       "tip": "86% of the 959 user reviews for this game are positive."
+      }
+     ],
+     "tags": [
+      "Action",
+      "FPS",
+      "Bullet Hell",
+      "Action-Adventure",
+      "Story Rich"
+     ]
+    },
+    {
+     "id": 2174380,
+     "name": "Call of the Elder Gods",
+     "plats": [
+      "steam"
+     ],
+     "short": "Journey to the far corners of the Earth and unearth ancient horrors in this Lovecraftian narrative puzzle adventure and sequel to 2020’s critically acclaimed Call of the Sea.",
+     "release": "12 May, 2026",
+     "dev": "Out of the Blue Games",
+     "pub": "Kwalee",
+     "reviews": [
+      {
+       "label": "Recent Reviews",
+       "summary": "Very Positive",
+       "count": "23",
+       "tip": "91% of the 23 user reviews in the last 30 days are positive."
+      },
+      {
+       "label": "All Reviews",
+       "summary": "Very Positive",
+       "count": "340",
+       "tip": "89% of the 340 user reviews for this game are positive."
+      }
+     ],
+     "tags": [
+      "Puzzle",
+      "Story Rich",
+      "Lovecraftian",
+      "Adventure",
+      "First-Person"
+     ]
+    }
+   ]
+  }
+ ]
+}

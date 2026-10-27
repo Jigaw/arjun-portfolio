@@ -27,17 +27,12 @@
     </div>
   </article>
 
-  <!-- 1 · PROJECTS -->
-  <article class="lv-card wide" data-i="1" aria-label="Projects">
+  <!-- 1 · PROJECTS (rows built by lv.js from src/projects.json; hover / tap a title for its Steam page) -->
+  <article class="lv-card wide lv-projects" data-i="1" aria-label="Projects">
     <div class="in">
       <div class="k lv-mono rv"><span>02 · Projects</span></div>
       <h3 class="rv" style="--d:1">Titles I've tested</h3>
-      <div class="lv-scroll">
-        <div class="lv-row rv" style="--d:2"><div class="lv-yr">Action-adv.</div><div><b>Jacket</b><span>Immersive action-adventure. Functionality testing on PC, Xbox and PS; compliance on PS4/PS5.</span><div class="lv-tags"><span class="lv-tag">PC</span><span class="lv-tag">Xbox</span><span class="lv-tag">PS4</span><span class="lv-tag">PS5</span></div></div></div>
-        <div class="lv-row rv" style="--d:3"><div class="lv-yr">Platformer</div><div><b>NYX</b><span>Vibrant 3D platformer with co-op. Functionality testing; assigned tasks and kept the database.</span><div class="lv-tags"><span class="lv-tag">PC</span><span class="lv-tag">PlayStation</span></div></div></div>
-        <div class="lv-row rv" style="--d:4"><div class="lv-yr">Base-build</div><div><b>Clove</b><span>Base-building, turn-based card game. Functionality testing and requirements; task assignment and database.</span><div class="lv-tags"><span class="lv-tag">PC</span></div></div></div>
-        <div class="lv-row rv" style="--d:5"><div class="lv-yr">Platformer</div><div><b>Philotes</b><span>3D platformer with multiplayer co-op. Functionality testing on Steam and Winstore.</span><div class="lv-tags"><span class="lv-tag">Steam</span><span class="lv-tag">Winstore</span></div></div></div>
-      </div>
+      <div class="lv-scroll" id="lv-projects"></div>
     </div>
   </article>
 
@@ -102,4 +97,5 @@
   <!-- shown on the other themes: back to Fire, where the stones hold the CV -->
   <button type="button" class="lv-back" id="lv-back"><svg class="i" viewBox="0 0 24 24"><path d="M12 22c4 0 7-2.8 7-6.8 0-4.3-3.3-6.6-4.3-10.7-2.2 1.5-3 3.9-2.9 6-1.3-.9-2-2.4-2-4C7 8.6 5 11.6 5 15.2 5 19.2 8 22 12 22z"/></svg>Back to the lava<span class="long"> · explore my CV</span></button>
 </div>
+<aside class="lv-steam" id="lv-steam" aria-live="polite" aria-hidden="true"></aside>
 <div class="lv-toast" id="lv-toast" role="status" aria-live="polite"></div>

@@ -185,6 +185,125 @@
     path.classList.add('on');
   }
 
+  // ---------- Projects: titles grouped by studio with platform logos; hover / tap one for a Steam-style panel ----------
+  const PROJ = /*PROJECTS*/null;   // filled in by build.py from src/projects.json
+  // PlayStation and Steam marks: Simple Icons (CC0); Xbox and PC are simple drawn marks
+  const ICONS = {
+    ps: { name: 'PlayStation', fill: 'M8.984 2.596v17.547l3.915 1.261V6.688c0-.69.304-1.151.794-.991.636.18.76.814.76 1.505v5.875c2.441 1.193 4.362-.002 4.362-3.152 0-3.237-1.126-4.675-4.438-5.827-1.307-.448-3.728-1.186-5.39-1.502zm4.656 16.241l6.296-2.275c.715-.258.826-.625.246-.818-.586-.192-1.637-.139-2.357.123l-4.205 1.5V14.98l.24-.085s1.201-.42 2.913-.615c1.696-.18 3.785.03 5.437.661 1.848.601 2.04 1.472 1.576 2.072-.465.6-1.622 1.036-1.622 1.036l-8.544 3.107V18.86zM1.807 18.6c-1.9-.545-2.214-1.668-1.352-2.32.801-.586 2.16-1.052 2.16-1.052l5.615-2.013v2.313L4.205 17c-.705.271-.825.632-.239.826.586.195 1.637.15 2.343-.12L8.247 17v2.074c-.12.03-.256.044-.39.073-1.939.331-3.996.196-6.038-.479z' },
+    steam: { name: 'Steam', fill: 'M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.605 0 11.979 0zM7.54 18.21l-1.473-.61c.262.543.714.999 1.314 1.25 1.297.539 2.793-.076 3.332-1.375.263-.63.264-1.319.005-1.949s-.75-1.121-1.377-1.383c-.624-.26-1.29-.249-1.878-.03l1.523.63c.956.4 1.409 1.5 1.009 2.455-.397.957-1.497 1.41-2.454 1.012H7.54zm11.415-9.303c0-1.662-1.353-3.015-3.015-3.015-1.665 0-3.015 1.353-3.015 3.015 0 1.665 1.35 3.015 3.015 3.015 1.663 0 3.015-1.35 3.015-3.015zm-5.273-.005c0-1.252 1.013-2.266 2.265-2.266 1.249 0 2.266 1.014 2.266 2.266 0 1.251-1.017 2.265-2.266 2.265-1.253 0-2.265-1.014-2.265-2.265z' },
+    xbox: { name: 'Xbox', stroke: 'M12 2.5a9.5 9.5 0 1 0 0 19a9.5 9.5 0 0 0 0-19zM7.2 6.4c1.9 1.1 3.5 2.6 4.8 4.4 1.3-1.8 2.9-3.3 4.8-4.4M6.6 17.2c1.4-2.3 3.2-4.3 5.4-6 2.2 1.7 4 3.7 5.4 6' },
+    pc: { name: 'PC', stroke: 'M3 4.5h18v11.5H3zM8.5 20h7M12 16v4' }
+  };
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function platIcon(kind) {
+    const I = ICONS[kind]; if (!I) return null;
+    const v = document.createElementNS(SVGNS, 'svg'); v.setAttribute('viewBox', '0 0 24 24'); v.setAttribute('class', 'lv-plat');
+    v.setAttribute('role', 'img'); v.setAttribute('aria-label', I.name);
+    const tt = document.createElementNS(SVGNS, 'title'); tt.textContent = I.name; v.appendChild(tt);
+    const p = document.createElementNS(SVGNS, 'path'); p.setAttribute('d', I.fill || I.stroke);
+    if (I.stroke) p.setAttribute('class', 'st');
+    v.appendChild(p);
+    return v;
+  }
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  const projBox = $('#lv-projects'), steamEl = document.getElementById('lv-steam');
+  let cardHover = -1, panelHover = false, panelFor = null, lastWantAt = 0;
+  const sentiment = (s) => /positive/i.test(s) ? 'pos' : /mixed/i.test(s) ? 'mix' : 'neg';
+  function fillPanel(it) {
+    steamEl.textContent = '';
+    const x = el('button', 'lv-steam-x', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Close'); x.addEventListener('click', hidePanel); steamEl.appendChild(x);
+    if (it.id) {
+      const img = el('img', 'lv-steam-img'); img.src = 'assets/steam/' + it.id + '.jpg'; img.alt = it.name; img.width = 460; img.height = 215;
+      steamEl.appendChild(img);
+    } else {
+      const ph = el('div', 'lv-steam-code'); ph.append(el('b', null, it.name), el('span', 'lv-mono', 'Codename project'));
+      steamEl.appendChild(ph);
+    }
+    const body = el('div', 'lv-steam-body');
+    body.appendChild(el('p', 'lv-steam-desc', it.short));
+    if (it.id) {
+      const tbl = el('div', 'lv-steam-rows');
+      const row = (k, v) => { const r = el('div', 'lv-steam-row'); r.appendChild(el('span', 'lv-steam-k', k)); r.appendChild(v); tbl.appendChild(r); };
+      (it.reviews || []).forEach((rv) => {
+        const v = el('span', 'lv-steam-v'); const s = el('b', 'rev ' + sentiment(rv.summary), rv.summary); s.title = rv.tip || '';
+        v.appendChild(s); if (rv.count) v.appendChild(el('span', 'cnt', ' (' + rv.count + ')'));
+        row(rv.label, v);
+      });
+      row('Release date', el('span', 'lv-steam-v', it.release));
+      row('Developer', el('span', 'lv-steam-v link', it.dev));
+      row('Publisher', el('span', 'lv-steam-v link', it.pub));
+      body.appendChild(tbl);
+      if (it.tags && it.tags.length) {
+        const tg = el('div', 'lv-steam-tags'); tg.appendChild(el('small', null, 'Popular user-defined tags for this product:'));
+        const wrap = el('div', 'chips'); it.tags.forEach((x) => wrap.appendChild(el('span', null, x))); tg.appendChild(wrap);
+        body.appendChild(tg);
+      }
+      const foot = el('div', 'lv-steam-foot');
+      const a = el('a', null, 'View on Steam ↗'); a.href = 'https://store.steampowered.com/app/' + it.id + '/'; a.target = '_blank'; a.rel = 'noopener noreferrer';
+      foot.append(a, el('small', null, 'Reviews as of ' + PROJ.asOf));
+      body.appendChild(foot);
+    }
+    steamEl.appendChild(body);
+  }
+  function showPanel(it, row) {
+    if (panelFor !== it) { fillPanel(it); panelFor = it; steamEl.scrollTop = 0; }
+    projBox.querySelectorAll('.lv-proj.on').forEach((r) => r.classList.remove('on'));
+    if (row) row.classList.add('on');
+    steamEl.classList.add('on'); steamEl.setAttribute('aria-hidden', 'false');
+  }
+  function hidePanel() {
+    if (!steamEl.classList.contains('on')) return;
+    steamEl.classList.remove('on'); steamEl.setAttribute('aria-hidden', 'true');
+    projBox.querySelectorAll('.lv-proj.on').forEach((r) => r.classList.remove('on'));
+  }
+  if (PROJ && projBox) {
+    PROJ.groups.forEach((g, gi) => {
+      const grp = el('div', 'lv-proj-grp rv'); grp.style.setProperty('--d', String(2 + gi));
+      grp.appendChild(el('small', 'lv-mono', g.co));
+      g.items.forEach((it) => {
+        const row = el('button', 'lv-proj'); row.type = 'button';
+        if (it.id) { const im = el('img', 'lv-proj-img'); im.src = 'assets/steam/' + it.id + '-s.jpg'; im.alt = ''; im.width = 92; im.height = 35; im.loading = 'lazy'; row.appendChild(im); }
+        else row.appendChild(el('span', 'lv-proj-img code lv-mono', 'Code'));
+        row.appendChild(el('span', 'lv-proj-name', it.name));
+        const pl = el('span', 'lv-plats'); it.plats.forEach((k) => { const ic = platIcon(k); if (ic) pl.appendChild(ic); }); row.appendChild(pl);
+        row.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') showPanel(it, row); });
+        row.addEventListener('focus', () => showPanel(it, row));
+        row.addEventListener('click', () => showPanel(it, row));
+        grp.appendChild(row);
+      });
+      projBox.appendChild(grp);
+    });
+  }
+  // the card (and its floating stone) stays while the pointer is on it or on its Steam panel
+  cards.forEach((c, i) => {
+    c.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') cardHover = i; });
+    c.addEventListener('pointerleave', (e) => {
+      if (cardHover !== i) return;
+      cardHover = -1;
+      if (!(e.relatedTarget && steamEl.contains(e.relatedTarget))) hidePanel();
+    });
+  });
+  steamEl.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') panelHover = true; });
+  steamEl.addEventListener('pointerleave', (e) => {
+    panelHover = false;
+    if (!(e.relatedTarget && cards[1].contains(e.relatedTarget))) hidePanel();
+  });
+  // the panel sits beside the Projects card (phones: a centred pop-up over it)
+  (function placePanel() {
+    requestAnimationFrame(placePanel);
+    if (!steamEl.classList.contains('on')) return;
+    if (active !== 1 || !fireOn() || S.giftUp) { hidePanel(); return; }
+    const vw = window.innerWidth, vh = window.innerHeight, cr = cards[1].getBoundingClientRect();
+    const pw = steamEl.offsetWidth, ph = steamEl.offsetHeight;
+    let x, y;
+    if (vw < 700) { x = 10; y = Math.max(64, (vh - ph) / 2); }   // phones: a centred pop-up over the card (closes with ×)
+    else {
+      x = cr.right + 14 + pw <= vw - 10 ? cr.right + 14 : Math.max(10, cr.left - 14 - pw);
+      y = Math.max(70, Math.min(vh - ph - 12, cr.top));
+    }
+    steamEl.style.transform = 'translate3d(' + Math.round(x) + 'px,' + Math.round(y) + 'px,0)';
+  })();
+
   // ---------- frame loop: place labels, cards and the steam tether ----------
   function frame(now) {
     requestAnimationFrame(frame);
@@ -204,7 +323,9 @@
     for (let i = 0; i < N; i++) if (S.rocks[i] && S.rocks[i].vis && S.rocks[i].over) { natural = i; break; }
     // hover only: the card is there while the stone (or its label) is under the pointer and goes the
     // moment it leaves. Touch has no hover, so a tap on a stone shows it until the next tap.
-    const want = natural >= 0 ? natural : labelHover >= 0 ? labelHover : focusIdx >= 0 ? focusIdx : touchOpen;
+    let want = natural >= 0 ? natural : labelHover >= 0 ? labelHover : focusIdx >= 0 ? focusIdx : cardHover >= 0 ? cardHover : panelHover ? 1 : touchOpen;
+    if (want >= 0) lastWantAt = now;                                          // last real hover / tap
+    else if (active >= 0 && now - lastWantAt < 400) want = active;           // a moment's grace to move from the stone onto its card
     S.hold = want;
 
     // once the stone is out of the lava its label pill appears above it; holding the hover fills the
@@ -308,7 +429,7 @@
   window.addEventListener('pointerdown', (e) => {
     downAt = { x: e.clientX, y: e.clientY };
     if (e.pointerType === 'mouse' || !fireOn() || S.giftUp) return;
-    if (e.target.closest && e.target.closest('.lv-card.on, .lv-track, .lv-quick, #btn-audio, #mini-ui')) return;   // swiping inside an open card keeps it
+    if (e.target.closest && e.target.closest('.lv-card.on, .lv-track, .lv-quick, #btn-audio, #mini-ui, #lv-steam')) return;   // swiping inside an open card keeps it
     const i = e.target.closest && e.target.closest('.lv-label') ? Number(e.target.closest('.lv-label').dataset.i) : rockAt(e.clientX, e.clientY);
     touchOpen = i >= 0 && touchOpen !== i ? i : -1;
   }, true);

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="dark"><head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data: blob:; media-src data: blob:; connect-src data: blob:; worker-src blob:; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src data: blob:; connect-src data: blob:; worker-src blob:; base-uri 'none'; form-action 'none'">
   <meta name="referrer" content="no-referrer">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Arjun H · QA at Kwalee</title>
@@ -552,6 +552,59 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
 .lv-moon-note::after { content: ''; position: absolute; left: var(--tail, 50%); bottom: -9px; width: 16px; height: 16px; margin-left: -8px; background: #fffaf0; transform: rotate(45deg); border-radius: 0 0 3px 0; }
 .lv-moon-note.below::after { bottom: auto; top: -9px; border-radius: 3px 0 0 0; }
 
+/* ---------- Projects: grouped titles, capsule images, platform logos ---------- */
+.lv-card.on { pointer-events: auto; }   /* cards are interactive: the Projects titles open their Steam pages */
+.lv-card.lv-projects { width: 640px; }
+.lv-card.lv-projects .lv-scroll { column-count: 2; column-gap: 18px; }
+.lv-proj-grp { break-inside: avoid; -webkit-column-break-inside: avoid; margin-bottom: 10px; }
+.lv-proj-grp > small { display: block; margin: 0 0 6px; font-size: 9.5px; color: var(--lv-gold); }
+.lv-proj { display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px; margin: 0 0 4px; border-radius: 10px; text-align: left; cursor: pointer;
+  background: var(--lv-bg-2); border: 1px solid var(--lv-line) !important; transition: border-color 0.2s, background 0.2s, transform 0.15s; }
+.lv-proj:hover, .lv-proj.on { border-color: var(--lv-flame) !important; background: rgba(255, 106, 26, 0.16); transform: translateX(2px); }
+.lv-proj-img { flex: 0 0 auto; width: 92px; height: 35px; border-radius: 6px; object-fit: cover; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
+.lv-proj-img.code { display: grid; place-items: center; font-size: 9px; color: var(--lv-mute); background: repeating-linear-gradient(135deg, rgba(255, 150, 70, 0.12) 0 6px, rgba(255, 150, 70, 0.04) 6px 12px); border: 1px dashed var(--lv-line); }
+.lv-proj-name { flex: 1 1 auto; min-width: 0; font-size: 13px; font-weight: 600; line-height: 1.25; color: var(--lv-text); }
+.lv-plats { flex: 0 0 auto; display: flex; gap: 6px; color: var(--lv-mute); }
+.lv-plat { width: 15px; height: 15px; fill: currentColor; }
+.lv-plat .st { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.lv-proj:hover .lv-plats, .lv-proj.on .lv-plats { color: var(--lv-gold); }
+
+/* ---------- the Steam-style panel beside the Projects card ---------- */
+.lv-steam { position: fixed; left: 0; top: 0; z-index: 24; width: 340px; max-width: calc(100vw - 20px); max-height: calc(100vh - 90px); overflow-y: auto; overscroll-behavior: contain;
+  border-radius: 6px; color: #acb2b8; background: linear-gradient(180deg, #1f2b3a, #16202d); box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(102, 192, 244, 0.12);
+  font: 400 13px/1.45 'Inter', 'Motiva Sans', Arial, sans-serif; opacity: 0; visibility: hidden; pointer-events: none; transform: translate3d(-999px, -999px, 0);
+  transition: opacity 0.18s, visibility 0s 0.18s; scrollbar-width: thin; }
+.lv-steam.on { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 0.18s; }
+.lv-steam-img { display: block; width: 100%; height: auto; aspect-ratio: 460 / 215; object-fit: cover; }
+.lv-steam-code { display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; aspect-ratio: 460 / 160; padding: 16px; background: radial-gradient(120% 120% at 80% 0%, #4a2414, #1a0d07); }
+.lv-steam-code b { font: 800 26px/1 'Syne', 'Inter', sans-serif; color: #fff2e6; }
+.lv-steam-code span { font-size: 10px; color: #ffc872; }
+.lv-steam-body { padding: 12px 14px 14px; }
+.lv-steam-desc { margin: 0 0 12px; color: #dfe3e6; font-size: 13.5px; line-height: 1.5; }
+.lv-steam-rows { display: grid; gap: 5px; margin-bottom: 12px; }
+.lv-steam-row { display: grid; grid-template-columns: 116px 1fr; gap: 8px; align-items: baseline; }
+.lv-steam-k { font-size: 10.5px; letter-spacing: 0.03em; text-transform: uppercase; color: #556772; }
+.lv-steam-v { font-size: 12.5px; color: #8f98a0; }
+.lv-steam-v.link { color: #66c0f4; }
+.lv-steam-v .rev { font-weight: 400; }
+.rev.pos { color: #66c0f4; } .rev.mix { color: #b9a074; } .rev.neg { color: #a34c25; }
+.lv-steam-v .cnt { color: #8f98a0; }
+.lv-steam-tags small { display: block; margin-bottom: 6px; font-size: 11px; color: #556772; }
+.lv-steam-tags .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.lv-steam-tags .chips span { padding: 2px 7px; border-radius: 2px; font-size: 11px; color: #67c1f5; background: rgba(103, 193, 245, 0.2); }
+.lv-steam-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+.lv-steam-foot a { color: #fff; font-size: 12.5px; font-weight: 600; text-decoration: none; padding: 6px 10px; border-radius: 3px; background: linear-gradient(90deg, #47bfff, #1a44c2); }
+.lv-steam-foot small { font-size: 10px; color: #556772; }
+@media (max-width: 700px) {
+  .lv-card.lv-projects { width: calc(100vw - 20px); }
+  .lv-card.lv-projects .lv-scroll, .lv-card.wide .lv-scroll { column-count: auto; columns: auto; }   /* no multi-column on phones: a height-capped single column spills sideways instead of scrolling */
+  .lv-steam { width: calc(100vw - 20px); max-height: calc(100vh - 90px); }
+  .lv-steam-img { aspect-ratio: 460 / 150; }
+}
+.lv-steam-x { position: absolute; top: 6px; right: 6px; z-index: 1; width: 34px; height: 34px; border: 0; border-radius: 50%; cursor: pointer; font: 400 22px/1 system-ui, sans-serif; color: #fff; background: rgba(10, 16, 24, 0.65); }
+.lv-steam-x:hover { background: rgba(10, 16, 24, 0.9); }
+.lv-steam { position: fixed; }
+
 </style>
 </head>
 <body class="relative w-full h-full select-none overflow-hidden">
@@ -724,17 +777,12 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
     </div>
   </article>
 
-  <!-- 1 · PROJECTS -->
-  <article class="lv-card wide" data-i="1" aria-label="Projects">
+  <!-- 1 · PROJECTS (rows built by lv.js from src/projects.json; hover / tap a title for its Steam page) -->
+  <article class="lv-card wide lv-projects" data-i="1" aria-label="Projects">
     <div class="in">
       <div class="k lv-mono rv"><span>02 · Projects</span></div>
       <h3 class="rv" style="--d:1">Titles I've tested</h3>
-      <div class="lv-scroll">
-        <div class="lv-row rv" style="--d:2"><div class="lv-yr">Action-adv.</div><div><b>Jacket</b><span>Immersive action-adventure. Functionality testing on PC, Xbox and PS; compliance on PS4/PS5.</span><div class="lv-tags"><span class="lv-tag">PC</span><span class="lv-tag">Xbox</span><span class="lv-tag">PS4</span><span class="lv-tag">PS5</span></div></div></div>
-        <div class="lv-row rv" style="--d:3"><div class="lv-yr">Platformer</div><div><b>NYX</b><span>Vibrant 3D platformer with co-op. Functionality testing; assigned tasks and kept the database.</span><div class="lv-tags"><span class="lv-tag">PC</span><span class="lv-tag">PlayStation</span></div></div></div>
-        <div class="lv-row rv" style="--d:4"><div class="lv-yr">Base-build</div><div><b>Clove</b><span>Base-building, turn-based card game. Functionality testing and requirements; task assignment and database.</span><div class="lv-tags"><span class="lv-tag">PC</span></div></div></div>
-        <div class="lv-row rv" style="--d:5"><div class="lv-yr">Platformer</div><div><b>Philotes</b><span>3D platformer with multiplayer co-op. Functionality testing on Steam and Winstore.</span><div class="lv-tags"><span class="lv-tag">Steam</span><span class="lv-tag">Winstore</span></div></div></div>
-      </div>
+      <div class="lv-scroll" id="lv-projects"></div>
     </div>
   </article>
 
@@ -799,6 +847,7 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
   <!-- shown on the other themes: back to Fire, where the stones hold the CV -->
   <button type="button" class="lv-back" id="lv-back"><svg class="i" viewBox="0 0 24 24"><path d="M12 22c4 0 7-2.8 7-6.8 0-4.3-3.3-6.6-4.3-10.7-2.2 1.5-3 3.9-2.9 6-1.3-.9-2-2.4-2-4C7 8.6 5 11.6 5 15.2 5 19.2 8 22 12 22z"/></svg>Back to the lava<span class="long"> · explore my CV</span></button>
 </div>
+<aside class="lv-steam" id="lv-steam" aria-live="polite" aria-hidden="true"></aside>
 <div class="lv-toast" id="lv-toast" role="status" aria-live="polite"></div>
 
 
@@ -8605,6 +8654,125 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
     path.classList.add('on');
   }
 
+  // ---------- Projects: titles grouped by studio with platform logos; hover / tap one for a Steam-style panel ----------
+  const PROJ = {"asOf": "28 Oct 2026", "groups": [{"co": "PTW · Side", "items": [{"id": 1477940, "name": "Unknown 9: Awakening", "plats": ["ps", "xbox", "steam"], "short": "You are Haroona, a Quaestor born with the ability to venture into a mysterious dimension: the Fold. On her quest for powerful hidden knowledge, she must learn to master the powers of the Fold to fight a secret society with a hostile agenda.", "release": "17 Oct, 2024", "dev": "Reflector Entertainment Ltd.", "pub": "BANDAI NAMCO Entertainment Inc.", "reviews": [{"label": "All Reviews", "summary": "Mixed", "count": "282", "tip": "55% of the 282 user reviews for this game are positive."}], "tags": ["Female Protagonist", "Action", "Action-Adventure", "Adventure", "Third Person"]}, {"id": 1392860, "name": "Little Nightmares III", "plats": ["ps", "steam"], "short": "Little Nightmares III is an atmospheric adventure game in which you follow the journey of Low and Alone, two best friends in search of a way out of the Nowhere. In 2 players online cooperation or solo with an A.I., work together to solve puzzles and survive in this nightmarish world.", "release": "9 Oct, 2025", "dev": "Supermassive Games", "pub": "Bandai Namco Entertainment", "reviews": [{"label": "Recent Reviews", "summary": "Mixed", "count": "159", "tip": "59% of the 159 user reviews in the last 30 days are positive."}, {"label": "English Reviews", "summary": "Mixed", "count": "5,090", "tip": "49% of the 5,090 user reviews in your language are positive"}], "tags": ["Co-op", "Adventure", "Horror", "Multiplayer", "Puzzle"]}, {"id": 1368140, "name": "Corsair Cove", "plats": ["steam"], "short": "Build a sprawling pirate haven, raise a fleet to explore the high seas, and take on the Crown to keep the Age of Piracy alive! From ale to flintlock pistols, and from scallywags to swashbucklers, you’ll need to manage complex production chains and govern a rowdy crew to reign supreme over the seas!", "release": "31 Jul, 2026", "dev": "Limbic Entertainment", "pub": "Hooded Horse", "reviews": [{"label": "Recent Reviews", "summary": "Very Positive", "count": "185", "tip": "82% of the 185 user reviews in the last 30 days are positive."}, {"label": "English Reviews", "summary": "Very Positive", "count": "1,483", "tip": "86% of the 1,483 user reviews in your language are positive"}], "tags": ["Strategy", "Simulation", "City Builder", "Base Building", "Grand Strategy"]}, {"name": "Clove", "code": true, "plats": ["pc"], "short": "Base-building, turn-based card game. Functionality and requirements testing; task assignment and the bug database."}, {"name": "Philotes", "code": true, "plats": ["steam", "pc"], "short": "3D platformer with multiplayer co-op. Functionality testing on Steam and the Windows Store."}]}, {"co": "Kwalee", "items": [{"id": 3195440, "name": "Welcome to Elderfield", "plats": ["steam"], "short": "Welcome to Elderfield, a cozy horror RPG with hand-drawn art and dark lofi music. Manage your farm, befriend or romance the locals, investigate mysteries, decorate your home, fight terrifying creatures, fish, cook, seek the Old Gods, die in your sleep, and more... There's lots to do in Elderfield!", "release": "10 Sep, 2026", "dev": "Chris Cote", "pub": "Kwalee", "reviews": [{"label": "Recent Reviews", "summary": "Mostly Positive", "count": "580", "tip": "76% of the 580 user reviews in the last 30 days are positive."}, {"label": "English Reviews", "summary": "Very Positive", "count": "1,723", "tip": "90% of the 1,723 user reviews in your language are positive"}], "tags": ["Horror", "RPG", "Farming Sim", "Adventure", "Pixel Graphics"]}, {"id": 1933000, "name": "Luna Abyss", "plats": ["steam"], "short": "Luna Abyss is a single player story driven action-adventure with fluid platforming and bullet hell combat. Follow the journey of Fawkes, a prisoner of Luna caught between a cryptic prophecy and their prison sentence.", "release": "21 May, 2026", "dev": "Kwalee Labs", "pub": "Kwalee", "reviews": [{"label": "Recent Reviews", "summary": "Very Positive", "count": "32", "tip": "84% of the 32 user reviews in the last 30 days are positive."}, {"label": "All Reviews", "summary": "Very Positive", "count": "959", "tip": "86% of the 959 user reviews for this game are positive."}], "tags": ["Action", "FPS", "Bullet Hell", "Action-Adventure", "Story Rich"]}, {"id": 2174380, "name": "Call of the Elder Gods", "plats": ["steam"], "short": "Journey to the far corners of the Earth and unearth ancient horrors in this Lovecraftian narrative puzzle adventure and sequel to 2020’s critically acclaimed Call of the Sea.", "release": "12 May, 2026", "dev": "Out of the Blue Games", "pub": "Kwalee", "reviews": [{"label": "Recent Reviews", "summary": "Very Positive", "count": "23", "tip": "91% of the 23 user reviews in the last 30 days are positive."}, {"label": "All Reviews", "summary": "Very Positive", "count": "340", "tip": "89% of the 340 user reviews for this game are positive."}], "tags": ["Puzzle", "Story Rich", "Lovecraftian", "Adventure", "First-Person"]}]}]};   // filled in by build.py from src/projects.json
+  // PlayStation and Steam marks: Simple Icons (CC0); Xbox and PC are simple drawn marks
+  const ICONS = {
+    ps: { name: 'PlayStation', fill: 'M8.984 2.596v17.547l3.915 1.261V6.688c0-.69.304-1.151.794-.991.636.18.76.814.76 1.505v5.875c2.441 1.193 4.362-.002 4.362-3.152 0-3.237-1.126-4.675-4.438-5.827-1.307-.448-3.728-1.186-5.39-1.502zm4.656 16.241l6.296-2.275c.715-.258.826-.625.246-.818-.586-.192-1.637-.139-2.357.123l-4.205 1.5V14.98l.24-.085s1.201-.42 2.913-.615c1.696-.18 3.785.03 5.437.661 1.848.601 2.04 1.472 1.576 2.072-.465.6-1.622 1.036-1.622 1.036l-8.544 3.107V18.86zM1.807 18.6c-1.9-.545-2.214-1.668-1.352-2.32.801-.586 2.16-1.052 2.16-1.052l5.615-2.013v2.313L4.205 17c-.705.271-.825.632-.239.826.586.195 1.637.15 2.343-.12L8.247 17v2.074c-.12.03-.256.044-.39.073-1.939.331-3.996.196-6.038-.479z' },
+    steam: { name: 'Steam', fill: 'M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.605 0 11.979 0zM7.54 18.21l-1.473-.61c.262.543.714.999 1.314 1.25 1.297.539 2.793-.076 3.332-1.375.263-.63.264-1.319.005-1.949s-.75-1.121-1.377-1.383c-.624-.26-1.29-.249-1.878-.03l1.523.63c.956.4 1.409 1.5 1.009 2.455-.397.957-1.497 1.41-2.454 1.012H7.54zm11.415-9.303c0-1.662-1.353-3.015-3.015-3.015-1.665 0-3.015 1.353-3.015 3.015 0 1.665 1.35 3.015 3.015 3.015 1.663 0 3.015-1.35 3.015-3.015zm-5.273-.005c0-1.252 1.013-2.266 2.265-2.266 1.249 0 2.266 1.014 2.266 2.266 0 1.251-1.017 2.265-2.266 2.265-1.253 0-2.265-1.014-2.265-2.265z' },
+    xbox: { name: 'Xbox', stroke: 'M12 2.5a9.5 9.5 0 1 0 0 19a9.5 9.5 0 0 0 0-19zM7.2 6.4c1.9 1.1 3.5 2.6 4.8 4.4 1.3-1.8 2.9-3.3 4.8-4.4M6.6 17.2c1.4-2.3 3.2-4.3 5.4-6 2.2 1.7 4 3.7 5.4 6' },
+    pc: { name: 'PC', stroke: 'M3 4.5h18v11.5H3zM8.5 20h7M12 16v4' }
+  };
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function platIcon(kind) {
+    const I = ICONS[kind]; if (!I) return null;
+    const v = document.createElementNS(SVGNS, 'svg'); v.setAttribute('viewBox', '0 0 24 24'); v.setAttribute('class', 'lv-plat');
+    v.setAttribute('role', 'img'); v.setAttribute('aria-label', I.name);
+    const tt = document.createElementNS(SVGNS, 'title'); tt.textContent = I.name; v.appendChild(tt);
+    const p = document.createElementNS(SVGNS, 'path'); p.setAttribute('d', I.fill || I.stroke);
+    if (I.stroke) p.setAttribute('class', 'st');
+    v.appendChild(p);
+    return v;
+  }
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  const projBox = $('#lv-projects'), steamEl = document.getElementById('lv-steam');
+  let cardHover = -1, panelHover = false, panelFor = null, lastWantAt = 0;
+  const sentiment = (s) => /positive/i.test(s) ? 'pos' : /mixed/i.test(s) ? 'mix' : 'neg';
+  function fillPanel(it) {
+    steamEl.textContent = '';
+    const x = el('button', 'lv-steam-x', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Close'); x.addEventListener('click', hidePanel); steamEl.appendChild(x);
+    if (it.id) {
+      const img = el('img', 'lv-steam-img'); img.src = 'assets/steam/' + it.id + '.jpg'; img.alt = it.name; img.width = 460; img.height = 215;
+      steamEl.appendChild(img);
+    } else {
+      const ph = el('div', 'lv-steam-code'); ph.append(el('b', null, it.name), el('span', 'lv-mono', 'Codename project'));
+      steamEl.appendChild(ph);
+    }
+    const body = el('div', 'lv-steam-body');
+    body.appendChild(el('p', 'lv-steam-desc', it.short));
+    if (it.id) {
+      const tbl = el('div', 'lv-steam-rows');
+      const row = (k, v) => { const r = el('div', 'lv-steam-row'); r.appendChild(el('span', 'lv-steam-k', k)); r.appendChild(v); tbl.appendChild(r); };
+      (it.reviews || []).forEach((rv) => {
+        const v = el('span', 'lv-steam-v'); const s = el('b', 'rev ' + sentiment(rv.summary), rv.summary); s.title = rv.tip || '';
+        v.appendChild(s); if (rv.count) v.appendChild(el('span', 'cnt', ' (' + rv.count + ')'));
+        row(rv.label, v);
+      });
+      row('Release date', el('span', 'lv-steam-v', it.release));
+      row('Developer', el('span', 'lv-steam-v link', it.dev));
+      row('Publisher', el('span', 'lv-steam-v link', it.pub));
+      body.appendChild(tbl);
+      if (it.tags && it.tags.length) {
+        const tg = el('div', 'lv-steam-tags'); tg.appendChild(el('small', null, 'Popular user-defined tags for this product:'));
+        const wrap = el('div', 'chips'); it.tags.forEach((x) => wrap.appendChild(el('span', null, x))); tg.appendChild(wrap);
+        body.appendChild(tg);
+      }
+      const foot = el('div', 'lv-steam-foot');
+      const a = el('a', null, 'View on Steam ↗'); a.href = 'https://store.steampowered.com/app/' + it.id + '/'; a.target = '_blank'; a.rel = 'noopener noreferrer';
+      foot.append(a, el('small', null, 'Reviews as of ' + PROJ.asOf));
+      body.appendChild(foot);
+    }
+    steamEl.appendChild(body);
+  }
+  function showPanel(it, row) {
+    if (panelFor !== it) { fillPanel(it); panelFor = it; steamEl.scrollTop = 0; }
+    projBox.querySelectorAll('.lv-proj.on').forEach((r) => r.classList.remove('on'));
+    if (row) row.classList.add('on');
+    steamEl.classList.add('on'); steamEl.setAttribute('aria-hidden', 'false');
+  }
+  function hidePanel() {
+    if (!steamEl.classList.contains('on')) return;
+    steamEl.classList.remove('on'); steamEl.setAttribute('aria-hidden', 'true');
+    projBox.querySelectorAll('.lv-proj.on').forEach((r) => r.classList.remove('on'));
+  }
+  if (PROJ && projBox) {
+    PROJ.groups.forEach((g, gi) => {
+      const grp = el('div', 'lv-proj-grp rv'); grp.style.setProperty('--d', String(2 + gi));
+      grp.appendChild(el('small', 'lv-mono', g.co));
+      g.items.forEach((it) => {
+        const row = el('button', 'lv-proj'); row.type = 'button';
+        if (it.id) { const im = el('img', 'lv-proj-img'); im.src = 'assets/steam/' + it.id + '-s.jpg'; im.alt = ''; im.width = 92; im.height = 35; im.loading = 'lazy'; row.appendChild(im); }
+        else row.appendChild(el('span', 'lv-proj-img code lv-mono', 'Code'));
+        row.appendChild(el('span', 'lv-proj-name', it.name));
+        const pl = el('span', 'lv-plats'); it.plats.forEach((k) => { const ic = platIcon(k); if (ic) pl.appendChild(ic); }); row.appendChild(pl);
+        row.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') showPanel(it, row); });
+        row.addEventListener('focus', () => showPanel(it, row));
+        row.addEventListener('click', () => showPanel(it, row));
+        grp.appendChild(row);
+      });
+      projBox.appendChild(grp);
+    });
+  }
+  // the card (and its floating stone) stays while the pointer is on it or on its Steam panel
+  cards.forEach((c, i) => {
+    c.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') cardHover = i; });
+    c.addEventListener('pointerleave', (e) => {
+      if (cardHover !== i) return;
+      cardHover = -1;
+      if (!(e.relatedTarget && steamEl.contains(e.relatedTarget))) hidePanel();
+    });
+  });
+  steamEl.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') panelHover = true; });
+  steamEl.addEventListener('pointerleave', (e) => {
+    panelHover = false;
+    if (!(e.relatedTarget && cards[1].contains(e.relatedTarget))) hidePanel();
+  });
+  // the panel sits beside the Projects card (phones: a centred pop-up over it)
+  (function placePanel() {
+    requestAnimationFrame(placePanel);
+    if (!steamEl.classList.contains('on')) return;
+    if (active !== 1 || !fireOn() || S.giftUp) { hidePanel(); return; }
+    const vw = window.innerWidth, vh = window.innerHeight, cr = cards[1].getBoundingClientRect();
+    const pw = steamEl.offsetWidth, ph = steamEl.offsetHeight;
+    let x, y;
+    if (vw < 700) { x = 10; y = Math.max(64, (vh - ph) / 2); }   // phones: a centred pop-up over the card (closes with ×)
+    else {
+      x = cr.right + 14 + pw <= vw - 10 ? cr.right + 14 : Math.max(10, cr.left - 14 - pw);
+      y = Math.max(70, Math.min(vh - ph - 12, cr.top));
+    }
+    steamEl.style.transform = 'translate3d(' + Math.round(x) + 'px,' + Math.round(y) + 'px,0)';
+  })();
+
   // ---------- frame loop: place labels, cards and the steam tether ----------
   function frame(now) {
     requestAnimationFrame(frame);
@@ -8624,7 +8792,9 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
     for (let i = 0; i < N; i++) if (S.rocks[i] && S.rocks[i].vis && S.rocks[i].over) { natural = i; break; }
     // hover only: the card is there while the stone (or its label) is under the pointer and goes the
     // moment it leaves. Touch has no hover, so a tap on a stone shows it until the next tap.
-    const want = natural >= 0 ? natural : labelHover >= 0 ? labelHover : focusIdx >= 0 ? focusIdx : touchOpen;
+    let want = natural >= 0 ? natural : labelHover >= 0 ? labelHover : focusIdx >= 0 ? focusIdx : cardHover >= 0 ? cardHover : panelHover ? 1 : touchOpen;
+    if (want >= 0) lastWantAt = now;                                          // last real hover / tap
+    else if (active >= 0 && now - lastWantAt < 400) want = active;           // a moment's grace to move from the stone onto its card
     S.hold = want;
 
     // once the stone is out of the lava its label pill appears above it; holding the hover fills the
@@ -8728,7 +8898,7 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
   window.addEventListener('pointerdown', (e) => {
     downAt = { x: e.clientX, y: e.clientY };
     if (e.pointerType === 'mouse' || !fireOn() || S.giftUp) return;
-    if (e.target.closest && e.target.closest('.lv-card.on, .lv-track, .lv-quick, #btn-audio, #mini-ui')) return;   // swiping inside an open card keeps it
+    if (e.target.closest && e.target.closest('.lv-card.on, .lv-track, .lv-quick, #btn-audio, #mini-ui, #lv-steam')) return;   // swiping inside an open card keeps it
     const i = e.target.closest && e.target.closest('.lv-label') ? Number(e.target.closest('.lv-label').dataset.i) : rockAt(e.clientX, e.clientY);
     touchOpen = i >= 0 && touchOpen !== i ? i : -1;
   }, true);

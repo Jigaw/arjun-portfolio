@@ -2865,21 +2865,14 @@ window.__ARJUN_TEX={albedo:"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2
       function playLavaPop(x) {
         if (!audioEnabled || !getBus()) return;
         const t = audioCtx.currentTime, d = sfxOut(Math.max(-0.85, Math.min(0.85, x / 18)));
-        tone(d, t, 'sine', rndA(70, 90), rndA(190, 240), 0.16, 0.01, 0.18);           // thick bubble bursting
-        tone(d, t + 0.05, 'sine', rndA(140, 170), rndA(60, 80), 0.08, 0.005, 0.22);
-        nz(d, t, 'bandpass', 350, 1400, 1.6, 0.06, 0.01, 0.25, 0.6);                  // gurgle
-        nz(d, t + 0.02, 'lowpass', 900, 250, 0.8, 0.07, 0.004, 0.18);                 // rock scraping loose
-        nz(d, t + 0.06, 'highpass', 3000, 5000, 0.7, 0.03, 0.05, 0.5);                // hiss of escaping heat
-        for (let i = 0; i < 4; i++) nz(d, t + 0.08 + R() * 0.3, 'bandpass', rndA(1800, 4500), rndA(1500, 3500), 2.5, rndA(0.025, 0.05), 0.001, rndA(0.01, 0.025));
+        const n = [261.6, 293.7, 329.6, 392, 440][Math.floor(R() * 5)];            // a soft rising bloom on a pentatonic note
+        tone(d, t, 'sine', n * 0.98, n, 0.05, 0.05, 0.7);
+        tone(d, t + 0.06, 'sine', n * 1.5, n * 1.5, 0.022, 0.06, 0.8);              // a gentle fifth above
       }
       function playLavaPlop(x, k = 0.6) {
         if (!audioEnabled || !getBus()) return;
         const t = audioCtx.currentTime, d = sfxOut(Math.max(-0.85, Math.min(0.85, x / 18)));
-        tone(d, t, 'sine', rndA(170, 210) - k * 50, rndA(70, 90) - k * 20, 0.06 + k * 0.08, 0.004, 0.14 + k * 0.12); // plop, deeper for big falls
-        nz(d, t, 'lowpass', 700, 200, 0.8, 0.03 + k * 0.05, 0.004, 0.14 + k * 0.1);
-        if (k > 0.7) nz(d, t + 0.02, 'bandpass', 900, 300, 1.2, 0.05 * k, 0.02, 0.4);   // the heavy slosh of a big splash
-        nz(d, t + 0.04, 'highpass', 2600, 4200, 0.7, 0.018, 0.08, 0.55);              // soft sizzle
-        for (let i = 0; i < 2; i++) nz(d, t + 0.05 + R() * 0.25, 'bandpass', rndA(2000, 4000), 2200, 2.5, 0.02, 0.001, 0.015);
+        tone(d, t, 'sine', 130.8, 128, 0.03 + k * 0.025, 0.03, 0.6 + k * 0.3);       // a warm, muffled settle
       }
       // a short stinger in the new theme's key when the theme changes (and when sound turns on)
       function playThemeStinger(th) {

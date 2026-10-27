@@ -358,7 +358,8 @@
     });
     box.querySelectorAll('.lv-orb').forEach((o) => o.remove());
     const core = box.querySelector('.lv-orbit-core'); core.textContent = '';
-    core.append(svgIcon(g.icon, 'lv-core-ico', true), el('b', null, g.name));
+    core.append(svgIcon(g.icon, 'lv-core-ico', true)); core.setAttribute('aria-label', g.name);
+    const title = document.getElementById('lv-skill-title'); if (title) title.textContent = g.name;   // the card's heading names the chosen group
     const nodes = g.logos ? g.logos.map(logoBadge) : g.items.map((x) => el('span', 'lv-orb chip', x));
     nodes.forEach((o) => box.appendChild(o));
     const w = box.clientWidth || 320, h = box.clientHeight || 280, hx = w / 2, hy = h / 2;

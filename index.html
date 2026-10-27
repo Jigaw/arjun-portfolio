@@ -652,7 +652,7 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
 .lv-orbit-core:hover::before { opacity: 1; transform: translate(-3px, -50%) rotate(-135deg); }
 .lv-orbit-core:hover::after { opacity: 1; transform: translate(3px, -50%) rotate(45deg); }
 .lv-orbit-core b { font-size: 11px; line-height: 1.15; color: var(--lv-ink); max-width: 78px; }
-.lv-core-ico { width: 24px; height: 24px; color: var(--lv-ink); }
+.lv-core-ico { width: 34px; height: 34px; color: var(--lv-ink); }
 .lv-orbit.pop .lv-orbit-core { animation: lv-core-pop 0.4s var(--lv-ease); }
 @keyframes lv-core-pop { from { transform: translate(-50%, -50%) scale(0.8); } }
 .lv-orb { position: absolute; z-index: 2; left: 50%; top: 50%; opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
@@ -873,7 +873,7 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
   <!-- 2 · SKILLS: group hubs; hover / tap one and its skills pop out in a circle (built by lv.js) -->
   <article class="lv-card wide lv-skills" data-i="2" aria-label="Skills">
     <div class="in">
-      <h3 class="rv" style="--d:1">The toolkit</h3>
+      <h3 class="rv" style="--d:1" id="lv-skill-title" aria-live="polite">Game testing</h3>
       <div class="lv-orbit-wrap rv" style="--d:2" id="lv-skills"></div>
     </div>
   </article>
@@ -9023,7 +9023,8 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
     });
     box.querySelectorAll('.lv-orb').forEach((o) => o.remove());
     const core = box.querySelector('.lv-orbit-core'); core.textContent = '';
-    core.append(svgIcon(g.icon, 'lv-core-ico', true), el('b', null, g.name));
+    core.append(svgIcon(g.icon, 'lv-core-ico', true)); core.setAttribute('aria-label', g.name);
+    const title = document.getElementById('lv-skill-title'); if (title) title.textContent = g.name;   // the card's heading names the chosen group
     const nodes = g.logos ? g.logos.map(logoBadge) : g.items.map((x) => el('span', 'lv-orb chip', x));
     nodes.forEach((o) => box.appendChild(o));
     const w = box.clientWidth || 320, h = box.clientHeight || 280, hx = w / 2, hy = h / 2;

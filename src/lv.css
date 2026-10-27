@@ -410,7 +410,7 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
 .lv-orbit-core:hover::before { opacity: 1; transform: translate(-3px, -50%) rotate(-135deg); }
 .lv-orbit-core:hover::after { opacity: 1; transform: translate(3px, -50%) rotate(45deg); }
 .lv-orbit-core b { font-size: 11px; line-height: 1.15; color: var(--lv-ink); max-width: 78px; }
-.lv-core-ico { width: 24px; height: 24px; color: var(--lv-ink); }
+.lv-core-ico { width: 34px; height: 34px; color: var(--lv-ink); }
 .lv-orbit.pop .lv-orbit-core { animation: lv-core-pop 0.4s var(--lv-ease); }
 @keyframes lv-core-pop { from { transform: translate(-50%, -50%) scale(0.8); } }
 .lv-orb { position: absolute; z-index: 2; left: 50%; top: 50%; opacity: 0; transform: translate(-50%, -50%) scale(0.3); }

@@ -605,6 +605,20 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
 .lv-steam-x:hover { background: rgba(10, 16, 24, 0.9); }
 .lv-steam { position: fixed; }
 
+/* studio logos in the group headings (tinted with the theme's gold via a mask) and platform logos under each title */
+.lv-co { display: flex; align-items: center; gap: 8px; margin: 2px 0 8px; }
+.lv-co b { font-size: 11px; color: var(--lv-gold); }
+.lv-co small { font-size: 9px; color: var(--lv-mute); }
+.lv-co-logo { display: block; height: 18px; background: var(--lv-gold); -webkit-mask: center / contain no-repeat; mask: center / contain no-repeat; }
+.lv-co-logo.side { width: 42px; -webkit-mask-image: url(assets/logos/side.png); mask-image: url(assets/logos/side.png); }
+.lv-co-logo.kwalee { width: 66px; height: 17px; -webkit-mask-image: url(assets/logos/kwalee.svg); mask-image: url(assets/logos/kwalee.svg); }
+.lv-proj-txt { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.lv-proj-txt .lv-plats { gap: 7px; flex-wrap: wrap; }
+.lv-proj-txt .lv-plat { width: 14px; height: 14px; }
+/* the close button is only for touch screens / phones; on desktop the panel simply follows the hover */
+.lv-steam-x { display: none; }
+@media (hover: none), (max-width: 700px) { .lv-steam-x { display: block; } }
+
 </style>
 </head>
 <body class="relative w-full h-full select-none overflow-hidden">
@@ -780,7 +794,6 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
   <!-- 1 · PROJECTS (rows built by lv.js from src/projects.json; hover / tap a title for its Steam page) -->
   <article class="lv-card wide lv-projects" data-i="1" aria-label="Projects">
     <div class="in">
-      <div class="k lv-mono rv"><span>02 · Projects</span></div>
       <h3 class="rv" style="--d:1">Titles I've tested</h3>
       <div class="lv-scroll" id="lv-projects"></div>
     </div>
@@ -6335,8 +6348,123 @@ float sfRip(vec2 p) { float w = sfN(p * 0.15) * 6.0; return sin(p.x * 1.7 + p.y 
         }
         return false;
       }
+      // ===== Writing in the snow: press and drag on the snow floor to draw. Each stroke is carved into a fine
+      // "groove" texture over the floor (much finer than the snow mesh), which the snow shader turns into a
+      // crisp channel: cool blue shadow inside, a bright rim, light catching its walls. Fresh snowfall slowly
+      // fills the writing back in. Injected into the scene by build.py. =====
+      const snowWrite = (() => {
+        const TW = IS_MOBILE ? 512 : 1024, TH = Math.round(TW * SNOW_D / SNOW_W);
+        const cv = document.createElement('canvas'); cv.width = TW; cv.height = TH;
+        const g = cv.getContext('2d');
+        g.fillStyle = '#000'; g.fillRect(0, 0, TW, TH);
+        const tex = new THREE.CanvasTexture(cv);
+        tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter; tex.generateMipmaps = false;
+        const trailU = { value: tex }, rectU = { value: new THREE.Vector4(SNOW_X0, SNOW_Z0, SNOW_W, SNOW_D) }, texelU = { value: new THREE.Vector2(1 / TW, 1 / TH) };
+        // layer the grooves on top of the snow shader's own wind ripples and grain
+        const baseCompile = snowMat.onBeforeCompile;
+        snowMat.onBeforeCompile = (sh) => {
+          baseCompile(sh);
+          sh.uniforms.uTrail = trailU; sh.uniforms.uTrailRect = rectU; sh.uniforms.uTrailTexel = texelU;
+          sh.fragmentShader = sh.fragmentShader
+            .replace('#include <common>', '#include <common>\nuniform sampler2D uTrail; uniform vec4 uTrailRect; uniform vec2 uTrailTexel;\nfloat trailAt(vec2 uv) { return texture2D(uTrail, uv).r; }')
+            .replace('#include <color_fragment>', `#include <color_fragment>
+  {
+    vec2 tuv = (vSnowW.xz - uTrailRect.xy) / uTrailRect.zw;
+    float gd = trailAt(tuv);
+    // inside a groove: cool blue shade, deepest in the middle; just outside it: a little bright rim of pushed-up snow
+    float rim = clamp((trailAt(tuv + vec2(uTrailTexel.x * 2.5, 0.0)) + trailAt(tuv - vec2(uTrailTexel.x * 2.5, 0.0)) + trailAt(tuv + vec2(0.0, uTrailTexel.y * 2.5)) + trailAt(tuv - vec2(0.0, uTrailTexel.y * 2.5))) * 0.25 - gd, 0.0, 1.0);
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.55, 0.66, 0.86), smoothstep(0.05, 0.9, gd) * 0.62);
+    diffuseColor.rgb += vec3(0.06) * rim;
+  }`)
+            .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+  {
+    vec2 tuv = (vSnowW.xz - uTrailRect.xy) / uTrailRect.zw;
+    float tx = trailAt(tuv + vec2(uTrailTexel.x, 0.0)) - trailAt(tuv - vec2(uTrailTexel.x, 0.0));
+    float tz = trailAt(tuv + vec2(0.0, uTrailTexel.y)) - trailAt(tuv - vec2(0.0, uTrailTexel.y));
+    vec3 tW = vec3(-tx, 0.0, -tz) * 2.4;                                         // the groove's walls catch the light
+    normal = normalize(normal - (viewMatrix * vec4(tW, 0.0)).xyz);
+  }`);
+        };
+        snowMat.needsUpdate = true;
+
+        const P = new THREE.Vector3(), ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+        let pen = null, dirty = false, fadeAcc = 0, crunchT = 0, hinted = false;
+        const toTex = (x, z) => [(x - SNOW_X0) / SNOW_W * TW, (z - SNOW_Z0) / SNOW_D * TH];
+        const inside = (p) => p.x > SNOW_X0 + 1 && p.x < SNOW_X0 + SNOW_W - 1 && p.z > SNOW_Z0 + 1 && p.z < SNOW_Z0 + SNOW_D - 1 && p.z > 1.2;
+        function hitAt(cx, cy) {
+          ndc.set((cx / window.innerWidth) * 2 - 1, -(cy / window.innerHeight) * 2 + 1);
+          ray.setFromCamera(ndc, camera);
+          return snowRayHit(ray.ray, P) && inside(P) ? P : null;
+        }
+        const lineW = TW / SNOW_W * 0.55;                                          // a groove ~0.55 units wide
+        function stroke(a, b) {
+          const [x0, y0] = toTex(a.x, a.z), [x1, y1] = toTex(b.x, b.z);
+          g.save();
+          g.lineCap = 'round'; g.lineJoin = 'round';
+          g.strokeStyle = 'rgba(255,255,255,0.95)'; g.lineWidth = lineW;
+          g.shadowColor = 'rgba(255,255,255,0.9)'; g.shadowBlur = lineW * 0.6;      // soft, rounded groove profile
+          g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
+          g.restore();
+          dirty = true;
+        }
+        function powder(p, n) {
+          for (let q = 0; q < n; q++) spawn(fxNorm, { p: [p.x, p.y + 0.12, p.z], v: [rnd(-0.8, 0.8), rnd(0.6, 1.6), rnd(-0.6, 0.6)], life: rnd(0.35, 0.7), s0: 0.1, s1: 0.06, a: 1, c0: [1, 1, 1], c1: [0.9, 0.94, 1], g: -5, d: 0.6 });
+        }
+        // capture phase: a press on the snow writes instead of turning the camera
+        container.addEventListener('pointerdown', (e) => {
+          if (currentTheme !== 'snow' || pen) return;
+          const p = hitAt(e.clientX, e.clientY);
+          if (!p) return;
+          e.stopPropagation();
+          initAudio();
+          pen = { id: e.pointerId, last: p.clone(), dist: 0 };
+          stroke(p, p); powder(p, 4);
+          pointerActive = false;
+        }, true);
+        window.addEventListener('pointermove', (e) => {
+          if (!pen || e.pointerId !== pen.id) return;
+          e.stopImmediatePropagation();                                            // no camera turn, no wall push while writing
+          pointerActive = false;
+          const p = hitAt(e.clientX, e.clientY);
+          if (!p) return;
+          const d = Math.hypot(p.x - pen.last.x, p.z - pen.last.z);
+          if (d < 0.05) return;
+          stroke(pen.last, p);
+          pen.dist += d;
+          if (pen.dist > 0.9) { pen.dist = 0; powder(p, 2); }
+          if (crunchT <= 0) { crunchT = 0.09; playHover('snow', p.x, true); }
+          pen.last.copy(p);
+        }, true);
+        const lift = (e) => { if (pen && e.pointerId === pen.id) pen = null; };
+        window.addEventListener('pointerup', lift);
+        window.addEventListener('pointercancel', lift);
+
+        function hint() {
+          const b = document.createElement('div');
+          b.className = 'lv-moon-note below'; b.textContent = 'Press and drag to write in the snow';
+          b.style.left = '50%'; b.style.top = Math.round(window.innerHeight * 0.68) + 'px'; b.style.marginLeft = '-0px';
+          document.body.appendChild(b);
+          b.style.left = Math.max(10, (window.innerWidth - b.offsetWidth) / 2) + 'px';
+          b.style.setProperty('--tail', '50%');
+          b.animate([{ opacity: 0, transform: 'translateY(8px) rotate(-2deg)' }, { opacity: 1, transform: 'translateY(0) rotate(-2deg)', offset: 0.12 },
+            { opacity: 1, transform: 'translateY(0) rotate(-2deg)', offset: 0.88 }, { opacity: 0, transform: 'translateY(-6px) rotate(-2deg)' }],
+          { duration: 3600, easing: 'ease-out', fill: 'forwards' }).onfinish = () => b.remove();
+        }
+        function update(dt) {
+          crunchT -= dt;
+          if (currentTheme !== 'snow') { pen = null; return; }
+          if (!hinted && window.__arjunIntroDone) { hinted = true; setTimeout(hint, 700); }
+          // fresh snow slowly fills the writing back in (about a minute and a half to vanish)
+          fadeAcc += dt;
+          if (fadeAcc > 0.5) { fadeAcc = 0; g.fillStyle = 'rgba(0,0,0,0.012)'; g.fillRect(0, 0, TW, TH); dirty = true; }
+          if (dirty) { tex.needsUpdate = true; dirty = false; }
+        }
+        return { update, get writing() { return !!pen; } };
+      })();
+
       let lastFurrow = null;
       function updateSnow(dt, time) {
+        snowWrite.update(dt);
         // gusts: a slow swell with sharper bursts on top
         gustK = Math.max(0, Math.sin(time * 0.31) * 0.6 + Math.sin(time * 0.83 + 1.3) * 0.4) ** 1.5;
         gustPhase += dt * gustK * 10;
@@ -6348,7 +6476,7 @@ float sfRip(vec2 p) { float w = sfN(p * 0.15) * 6.0; return sin(p.x * 1.7 + p.y 
         }
         // pointer ploughs through the snow when it is over the floor
         let ploughed = false;
-        if (pointerActive) {
+        if (false && pointerActive) {   // replaced by press-and-drag writing (snowWrite)
           snowRay.setFromCamera(pointerNDC, camera);
           if (snowRayHit(snowRay.ray, snowHit) && snowHit.x > SNOW_X0 + 2 && snowHit.x < SNOW_X0 + SNOW_W - 2 && snowHit.z > SNOW_Z0 + 2 && snowHit.z < SNOW_Z0 + SNOW_D - 2 && snowHit.z > 1.2) {
             if (lastFurrow && Math.hypot(snowHit.x - lastFurrow.x, snowHit.z - lastFurrow.z) > 0.25) {
@@ -8210,7 +8338,7 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
         iceShellMat.opacity = 0.10 * scE * (1 - scP);
         iceShellMat.visible = iceShellMat.opacity > 0.005;
         const flare = Math.exp(-Math.pow((scS - 0.52) / 0.045, 2)) + Math.exp(-Math.pow((scS - 0.80) / 0.045, 2));
-        portalRing.visible = portalDisc.visible = flare > 0.01;
+        portalRing.visible = portalDisc.visible = false;
         ringMat.opacity = Math.min(1, flare) * 0.85;
         discMat.opacity = Math.min(1, flare) * 0.18;
         portalRing.scale.setScalar(0.5 + flare * 0.45);
@@ -8655,20 +8783,25 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
   }
 
   // ---------- Projects: titles grouped by studio with platform logos; hover / tap one for a Steam-style panel ----------
-  const PROJ = {"asOf": "28 Oct 2026", "groups": [{"co": "PTW · Side", "items": [{"id": 1477940, "name": "Unknown 9: Awakening", "plats": ["ps", "xbox", "steam"], "short": "You are Haroona, a Quaestor born with the ability to venture into a mysterious dimension: the Fold. On her quest for powerful hidden knowledge, she must learn to master the powers of the Fold to fight a secret society with a hostile agenda.", "release": "17 Oct, 2024", "dev": "Reflector Entertainment Ltd.", "pub": "BANDAI NAMCO Entertainment Inc.", "reviews": [{"label": "All Reviews", "summary": "Mixed", "count": "282", "tip": "55% of the 282 user reviews for this game are positive."}], "tags": ["Female Protagonist", "Action", "Action-Adventure", "Adventure", "Third Person"]}, {"id": 1392860, "name": "Little Nightmares III", "plats": ["ps", "steam"], "short": "Little Nightmares III is an atmospheric adventure game in which you follow the journey of Low and Alone, two best friends in search of a way out of the Nowhere. In 2 players online cooperation or solo with an A.I., work together to solve puzzles and survive in this nightmarish world.", "release": "9 Oct, 2025", "dev": "Supermassive Games", "pub": "Bandai Namco Entertainment", "reviews": [{"label": "Recent Reviews", "summary": "Mixed", "count": "159", "tip": "59% of the 159 user reviews in the last 30 days are positive."}, {"label": "English Reviews", "summary": "Mixed", "count": "5,090", "tip": "49% of the 5,090 user reviews in your language are positive"}], "tags": ["Co-op", "Adventure", "Horror", "Multiplayer", "Puzzle"]}, {"id": 1368140, "name": "Corsair Cove", "plats": ["steam"], "short": "Build a sprawling pirate haven, raise a fleet to explore the high seas, and take on the Crown to keep the Age of Piracy alive! From ale to flintlock pistols, and from scallywags to swashbucklers, you’ll need to manage complex production chains and govern a rowdy crew to reign supreme over the seas!", "release": "31 Jul, 2026", "dev": "Limbic Entertainment", "pub": "Hooded Horse", "reviews": [{"label": "Recent Reviews", "summary": "Very Positive", "count": "185", "tip": "82% of the 185 user reviews in the last 30 days are positive."}, {"label": "English Reviews", "summary": "Very Positive", "count": "1,483", "tip": "86% of the 1,483 user reviews in your language are positive"}], "tags": ["Strategy", "Simulation", "City Builder", "Base Building", "Grand Strategy"]}, {"name": "Clove", "code": true, "plats": ["pc"], "short": "Base-building, turn-based card game. Functionality and requirements testing; task assignment and the bug database."}, {"name": "Philotes", "code": true, "plats": ["steam", "pc"], "short": "3D platformer with multiplayer co-op. Functionality testing on Steam and the Windows Store."}]}, {"co": "Kwalee", "items": [{"id": 3195440, "name": "Welcome to Elderfield", "plats": ["steam"], "short": "Welcome to Elderfield, a cozy horror RPG with hand-drawn art and dark lofi music. Manage your farm, befriend or romance the locals, investigate mysteries, decorate your home, fight terrifying creatures, fish, cook, seek the Old Gods, die in your sleep, and more... There's lots to do in Elderfield!", "release": "10 Sep, 2026", "dev": "Chris Cote", "pub": "Kwalee", "reviews": [{"label": "Recent Reviews", "summary": "Mostly Positive", "count": "580", "tip": "76% of the 580 user reviews in the last 30 days are positive."}, {"label": "English Reviews", "summary": "Very Positive", "count": "1,723", "tip": "90% of the 1,723 user reviews in your language are positive"}], "tags": ["Horror", "RPG", "Farming Sim", "Adventure", "Pixel Graphics"]}, {"id": 1933000, "name": "Luna Abyss", "plats": ["steam"], "short": "Luna Abyss is a single player story driven action-adventure with fluid platforming and bullet hell combat. Follow the journey of Fawkes, a prisoner of Luna caught between a cryptic prophecy and their prison sentence.", "release": "21 May, 2026", "dev": "Kwalee Labs", "pub": "Kwalee", "reviews": [{"label": "Recent Reviews", "summary": "Very Positive", "count": "32", "tip": "84% of the 32 user reviews in the last 30 days are positive."}, {"label": "All Reviews", "summary": "Very Positive", "count": "959", "tip": "86% of the 959 user reviews for this game are positive."}], "tags": ["Action", "FPS", "Bullet Hell", "Action-Adventure", "Story Rich"]}, {"id": 2174380, "name": "Call of the Elder Gods", "plats": ["steam"], "short": "Journey to the far corners of the Earth and unearth ancient horrors in this Lovecraftian narrative puzzle adventure and sequel to 2020’s critically acclaimed Call of the Sea.", "release": "12 May, 2026", "dev": "Out of the Blue Games", "pub": "Kwalee", "reviews": [{"label": "Recent Reviews", "summary": "Very Positive", "count": "23", "tip": "91% of the 23 user reviews in the last 30 days are positive."}, {"label": "All Reviews", "summary": "Very Positive", "count": "340", "tip": "89% of the 340 user reviews for this game are positive."}], "tags": ["Puzzle", "Story Rich", "Lovecraftian", "Adventure", "First-Person"]}]}]};   // filled in by build.py from src/projects.json
-  // PlayStation and Steam marks: Simple Icons (CC0); Xbox and PC are simple drawn marks
+  const PROJ = {"asOf": "28 Oct 2026", "groups": [{"co": "PTW · Side", "items": [{"id": 1477940, "name": "Unknown 9: Awakening", "plats": ["ps", "xbox", "steam", "deck:Playable"], "short": "You are Haroona, a Quaestor born with the ability to venture into a mysterious dimension: the Fold. On her quest for powerful hidden knowledge, she must learn to master the powers of the Fold to fight a secret society with a hostile agenda.", "release": "17 Oct, 2024", "dev": "Reflector Entertainment Ltd.", "pub": "BANDAI NAMCO Entertainment Inc.", "reviews": [{"label": "All Reviews", "summary": "Mixed", "count": "282", "tip": "55% of the 282 user reviews for this game are positive."}], "tags": ["Female Protagonist", "Action", "Action-Adventure", "Adventure", "Third Person"]}, {"id": 1392860, "name": "Little Nightmares III", "plats": ["ps", "xbox", "ns", "steam", "deck:Verified"], "short": "Little Nightmares III is an atmospheric adventure game in which you follow the journey of Low and Alone, two best friends in search of a way out of the Nowhere. In 2 players online cooperation or solo with an A.I., work together to solve puzzles and survive in this nightmarish world.", "release": "9 Oct, 2025", "dev": "Supermassive Games", "pub": "Bandai Namco Entertainment", "reviews": [{"label": "Recent Reviews", "summary": "Mixed", "count": "159", "tip": "59% of the 159 user reviews in the last 30 days are positive."}, {"label": "English Reviews", "summary": "Mixed", "count": "5,090", "tip": "49% of the 5,090 user reviews in your language are positive"}], "tags": ["Co-op", "Adventure", "Horror", "Multiplayer", "Puzzle"]}, {"id": 1368140, "name": "Corsair Cove", "plats": ["steam", "deck:Playable"], "short": "Build a sprawling pirate haven, raise a fleet to explore the high seas, and take on the Crown to keep the Age of Piracy alive! From ale to flintlock pistols, and from scallywags to swashbucklers, you’ll need to manage complex production chains and govern a rowdy crew to reign supreme over the seas!", "release": "31 Jul, 2026", "dev": "Limbic Entertainment", "pub": "Hooded Horse", "reviews": [{"label": "Recent Reviews", "summary": "Very Positive", "count": "185", "tip": "82% of the 185 user reviews in the last 30 days are positive."}, {"label": "English Reviews", "summary": "Very Positive", "count": "1,483", "tip": "86% of the 1,483 user reviews in your language are positive"}], "tags": ["Strategy", "Simulation", "City Builder", "Base Building", "Grand Strategy"]}], "logo": "side", "note": "formerly PTW"}, {"co": "Kwalee", "items": [{"id": 3195440, "name": "Welcome to Elderfield", "plats": ["steam", "deck:Verified"], "short": "Welcome to Elderfield, a cozy horror RPG with hand-drawn art and dark lofi music. Manage your farm, befriend or romance the locals, investigate mysteries, decorate your home, fight terrifying creatures, fish, cook, seek the Old Gods, die in your sleep, and more... There's lots to do in Elderfield!", "release": "10 Sep, 2026", "dev": "Chris Cote", "pub": "Kwalee", "reviews": [{"label": "Recent Reviews", "summary": "Mostly Positive", "count": "580", "tip": "76% of the 580 user reviews in the last 30 days are positive."}, {"label": "English Reviews", "summary": "Very Positive", "count": "1,723", "tip": "90% of the 1,723 user reviews in your language are positive"}], "tags": ["Horror", "RPG", "Farming Sim", "Adventure", "Pixel Graphics"]}, {"id": 1933000, "name": "Luna Abyss", "plats": ["ps", "xbox", "steam", "deck:Verified"], "short": "Luna Abyss is a single player story driven action-adventure with fluid platforming and bullet hell combat. Follow the journey of Fawkes, a prisoner of Luna caught between a cryptic prophecy and their prison sentence.", "release": "21 May, 2026", "dev": "Kwalee Labs", "pub": "Kwalee", "reviews": [{"label": "Recent Reviews", "summary": "Very Positive", "count": "32", "tip": "84% of the 32 user reviews in the last 30 days are positive."}, {"label": "All Reviews", "summary": "Very Positive", "count": "959", "tip": "86% of the 959 user reviews for this game are positive."}], "tags": ["Action", "FPS", "Bullet Hell", "Action-Adventure", "Story Rich"]}, {"id": 2174380, "name": "Call of the Elder Gods", "plats": ["ps", "xbox", "ns", "steam", "deck:Verified"], "short": "Journey to the far corners of the Earth and unearth ancient horrors in this Lovecraftian narrative puzzle adventure and sequel to 2020’s critically acclaimed Call of the Sea.", "release": "12 May, 2026", "dev": "Out of the Blue Games", "pub": "Kwalee", "reviews": [{"label": "Recent Reviews", "summary": "Very Positive", "count": "23", "tip": "91% of the 23 user reviews in the last 30 days are positive."}, {"label": "All Reviews", "summary": "Very Positive", "count": "340", "tip": "89% of the 340 user reviews for this game are positive."}], "tags": ["Puzzle", "Story Rich", "Lovecraftian", "Adventure", "First-Person"]}], "logo": "kwalee", "note": "current"}]};   // filled in by build.py from src/projects.json
+  // PlayStation, Steam, Nintendo Switch, Steam Deck and ROG marks: Simple Icons (CC0); Xbox and PC are simple drawn marks
   const ICONS = {
     ps: { name: 'PlayStation', fill: 'M8.984 2.596v17.547l3.915 1.261V6.688c0-.69.304-1.151.794-.991.636.18.76.814.76 1.505v5.875c2.441 1.193 4.362-.002 4.362-3.152 0-3.237-1.126-4.675-4.438-5.827-1.307-.448-3.728-1.186-5.39-1.502zm4.656 16.241l6.296-2.275c.715-.258.826-.625.246-.818-.586-.192-1.637-.139-2.357.123l-4.205 1.5V14.98l.24-.085s1.201-.42 2.913-.615c1.696-.18 3.785.03 5.437.661 1.848.601 2.04 1.472 1.576 2.072-.465.6-1.622 1.036-1.622 1.036l-8.544 3.107V18.86zM1.807 18.6c-1.9-.545-2.214-1.668-1.352-2.32.801-.586 2.16-1.052 2.16-1.052l5.615-2.013v2.313L4.205 17c-.705.271-.825.632-.239.826.586.195 1.637.15 2.343-.12L8.247 17v2.074c-.12.03-.256.044-.39.073-1.939.331-3.996.196-6.038-.479z' },
     steam: { name: 'Steam', fill: 'M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.605 0 11.979 0zM7.54 18.21l-1.473-.61c.262.543.714.999 1.314 1.25 1.297.539 2.793-.076 3.332-1.375.263-.63.264-1.319.005-1.949s-.75-1.121-1.377-1.383c-.624-.26-1.29-.249-1.878-.03l1.523.63c.956.4 1.409 1.5 1.009 2.455-.397.957-1.497 1.41-2.454 1.012H7.54zm11.415-9.303c0-1.662-1.353-3.015-3.015-3.015-1.665 0-3.015 1.353-3.015 3.015 0 1.665 1.35 3.015 3.015 3.015 1.663 0 3.015-1.35 3.015-3.015zm-5.273-.005c0-1.252 1.013-2.266 2.265-2.266 1.249 0 2.266 1.014 2.266 2.266 0 1.251-1.017 2.265-2.266 2.265-1.253 0-2.265-1.014-2.265-2.265z' },
     xbox: { name: 'Xbox', stroke: 'M12 2.5a9.5 9.5 0 1 0 0 19a9.5 9.5 0 0 0 0-19zM7.2 6.4c1.9 1.1 3.5 2.6 4.8 4.4 1.3-1.8 2.9-3.3 4.8-4.4M6.6 17.2c1.4-2.3 3.2-4.3 5.4-6 2.2 1.7 4 3.7 5.4 6' },
-    pc: { name: 'PC', stroke: 'M3 4.5h18v11.5H3zM8.5 20h7M12 16v4' }
+    pc: { name: 'PC', stroke: 'M3 4.5h18v11.5H3zM8.5 20h7M12 16v4' },
+    ns: { name: 'Nintendo Switch', fill: 'M14.176 24h3.674c3.376 0 6.15-2.774 6.15-6.15V6.15C24 2.775 21.226 0 17.85 0H14.1c-.074 0-.15.074-.15.15v23.7c-.001.076.075.15.226.15zm4.574-13.199c1.351 0 2.399 1.125 2.399 2.398 0 1.352-1.125 2.4-2.399 2.4-1.35 0-2.4-1.049-2.4-2.4-.075-1.349 1.05-2.398 2.4-2.398zM11.4 0H6.15C2.775 0 0 2.775 0 6.15v11.7C0 21.226 2.775 24 6.15 24h5.25c.074 0 .15-.074.15-.149V.15c.001-.076-.075-.15-.15-.15zM9.676 22.051H6.15c-2.326 0-4.201-1.875-4.201-4.201V6.15c0-2.326 1.875-4.201 4.201-4.201H9.6l.076 20.102zM3.75 7.199c0 1.275.975 2.25 2.25 2.25s2.25-.975 2.25-2.25c0-1.273-.975-2.25-2.25-2.25s-2.25.977-2.25 2.25z' },
+    deck: { name: 'Steam Deck', fill: 'M8.999 0v4.309c4.242 0 7.694 3.45 7.694 7.691s-3.452 7.691-7.694 7.691V24c6.617 0 12-5.383 12-12s-5.383-12-12-12Zm0 6.011c-3.313 0-6 2.687-5.998 6a5.999 5.999 0 1 0 5.998-6z' },
+    rog: { name: 'ROG Ally', fill: 'M21.3906 5.5833c-1.3467.0115-3.4338.19541-5.9375.97657-1.6024.49851-3.916 2.74203-8.22459 6.90823-.56973.3204-2.67017-.8912-3.88085-1.461 0 0 1.9929 3.1699 2.70507 4.0957 1.06825 1.46 3.02735 2.3145 3.02735 2.3145-.17804-.1781-1.53019-1.6029-1.92188-2.4219-.24926-.3917.03418-.9624 1.95703-2.3867C10.86 12.3268 17.0569 7.09358 23.0391 5.66924c0 0-.601-.09488-1.6485-.08593V5.5833ZM24 7.7708c-2.0653.21366-4.06.81878-5.9473 1.70899C14.2783 11.2602 7.9043 15.8177 7.9043 15.8177c.28486.178.5706.3556.85546.498 3.06234 1.3531 7.58484 2.1716 8.43944 1.8867 2.3858-.7833 5.056-5.8026 5.875-8.1172 0 0-2.4933.9968-5.0215 2.1719-2.1009.9971-4.414 2.1368-4.414 2.1368l5.875-1.7813s-1.5676 3.7036-3.6328 4.1309c-2.0653.4273-5.6973-1.0332-5.6973-1.0332.2849-.2493 4.1302-3.0629 13.1035-6.73051.3917-.28487.6417-.74608.7129-1.20898V7.7708ZM0 11.2942c.35608.9615.8194 1.8525 1.35352 2.7071.64094.819 3.27477 1.4952 3.63086 1.5664C3.34638 14.4282 0 11.2942 0 11.2942Z' }
   };
   const SVGNS = 'http://www.w3.org/2000/svg';
-  function platIcon(kind) {
+  function platIcon(spec) {
+    const [kind, note] = spec.split(':');                       // e.g. 'deck:Verified' (Valve's Steam Deck rating)
     const I = ICONS[kind]; if (!I) return null;
+    const label = note ? I.name + ': ' + note : I.name;
     const v = document.createElementNS(SVGNS, 'svg'); v.setAttribute('viewBox', '0 0 24 24'); v.setAttribute('class', 'lv-plat');
-    v.setAttribute('role', 'img'); v.setAttribute('aria-label', I.name);
-    const tt = document.createElementNS(SVGNS, 'title'); tt.textContent = I.name; v.appendChild(tt);
+    v.setAttribute('role', 'img'); v.setAttribute('aria-label', label);
+    const tt = document.createElementNS(SVGNS, 'title'); tt.textContent = label; v.appendChild(tt);
     const p = document.createElementNS(SVGNS, 'path'); p.setAttribute('d', I.fill || I.stroke);
     if (I.stroke) p.setAttribute('class', 'st');
     v.appendChild(p);
@@ -8728,13 +8861,19 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
   if (PROJ && projBox) {
     PROJ.groups.forEach((g, gi) => {
       const grp = el('div', 'lv-proj-grp rv'); grp.style.setProperty('--d', String(2 + gi));
-      grp.appendChild(el('small', 'lv-mono', g.co));
+      const head = el('div', 'lv-co');
+      if (g.logo) { const lg = el('span', 'lv-co-logo ' + g.logo); lg.setAttribute('role', 'img'); lg.setAttribute('aria-label', g.co); head.appendChild(lg); }
+      else head.appendChild(el('b', null, g.co));
+      if (g.note) head.appendChild(el('small', 'lv-mono', g.note));
+      grp.appendChild(head);
       g.items.forEach((it) => {
         const row = el('button', 'lv-proj'); row.type = 'button';
         if (it.id) { const im = el('img', 'lv-proj-img'); im.src = 'assets/steam/' + it.id + '-s.jpg'; im.alt = ''; im.width = 92; im.height = 35; im.loading = 'lazy'; row.appendChild(im); }
         else row.appendChild(el('span', 'lv-proj-img code lv-mono', 'Code'));
-        row.appendChild(el('span', 'lv-proj-name', it.name));
-        const pl = el('span', 'lv-plats'); it.plats.forEach((k) => { const ic = platIcon(k); if (ic) pl.appendChild(ic); }); row.appendChild(pl);
+        const txt = el('span', 'lv-proj-txt');
+        txt.appendChild(el('span', 'lv-proj-name', it.name));
+        const pl = el('span', 'lv-plats'); it.plats.forEach((k) => { const ic = platIcon(k); if (ic) pl.appendChild(ic); }); txt.appendChild(pl);
+        row.appendChild(txt);
         row.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') showPanel(it, row); });
         row.addEventListener('focus', () => showPanel(it, row));
         row.addEventListener('click', () => showPanel(it, row));
@@ -8743,20 +8882,16 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
       projBox.appendChild(grp);
     });
   }
-  // the card (and its floating stone) stays while the pointer is on it or on its Steam panel
+  // the card (and its floating stone) stays while the pointer is on it or on its Steam panel. Leaving either waits a
+  // moment before hiding the panel, so the pointer can cross the gap between them (and reach "View on Steam")
+  let hideTimer = 0;
+  const hideSoon = () => { clearTimeout(hideTimer); hideTimer = setTimeout(() => { if (cardHover !== 1 && !panelHover) hidePanel(); }, 400); };
   cards.forEach((c, i) => {
-    c.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') cardHover = i; });
-    c.addEventListener('pointerleave', (e) => {
-      if (cardHover !== i) return;
-      cardHover = -1;
-      if (!(e.relatedTarget && steamEl.contains(e.relatedTarget))) hidePanel();
-    });
+    c.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') { cardHover = i; clearTimeout(hideTimer); } });
+    c.addEventListener('pointerleave', () => { if (cardHover === i) { cardHover = -1; hideSoon(); } });
   });
-  steamEl.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') panelHover = true; });
-  steamEl.addEventListener('pointerleave', (e) => {
-    panelHover = false;
-    if (!(e.relatedTarget && cards[1].contains(e.relatedTarget))) hidePanel();
-  });
+  steamEl.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') { panelHover = true; clearTimeout(hideTimer); } });
+  steamEl.addEventListener('pointerleave', () => { panelHover = false; hideSoon(); });
   // the panel sits beside the Projects card (phones: a centred pop-up over it)
   (function placePanel() {
     requestAnimationFrame(placePanel);
@@ -8794,7 +8929,7 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
     // moment it leaves. Touch has no hover, so a tap on a stone shows it until the next tap.
     let want = natural >= 0 ? natural : labelHover >= 0 ? labelHover : focusIdx >= 0 ? focusIdx : cardHover >= 0 ? cardHover : panelHover ? 1 : touchOpen;
     if (want >= 0) lastWantAt = now;                                          // last real hover / tap
-    else if (active >= 0 && now - lastWantAt < 400) want = active;           // a moment's grace to move from the stone onto its card
+    else if (active >= 0 && now - lastWantAt < 600) want = active;           // a moment's grace to move from the stone onto its card
     S.hold = want;
 
     // once the stone is out of the lava its label pill appears above it; holding the hover fills the

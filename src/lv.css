@@ -362,3 +362,17 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
 .lv-steam-x { position: absolute; top: 6px; right: 6px; z-index: 1; width: 34px; height: 34px; border: 0; border-radius: 50%; cursor: pointer; font: 400 22px/1 system-ui, sans-serif; color: #fff; background: rgba(10, 16, 24, 0.65); }
 .lv-steam-x:hover { background: rgba(10, 16, 24, 0.9); }
 .lv-steam { position: fixed; }
+
+/* studio logos in the group headings (tinted with the theme's gold via a mask) and platform logos under each title */
+.lv-co { display: flex; align-items: center; gap: 8px; margin: 2px 0 8px; }
+.lv-co b { font-size: 11px; color: var(--lv-gold); }
+.lv-co small { font-size: 9px; color: var(--lv-mute); }
+.lv-co-logo { display: block; height: 18px; background: var(--lv-gold); -webkit-mask: center / contain no-repeat; mask: center / contain no-repeat; }
+.lv-co-logo.side { width: 42px; -webkit-mask-image: url(assets/logos/side.png); mask-image: url(assets/logos/side.png); }
+.lv-co-logo.kwalee { width: 66px; height: 17px; -webkit-mask-image: url(assets/logos/kwalee.svg); mask-image: url(assets/logos/kwalee.svg); }
+.lv-proj-txt { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.lv-proj-txt .lv-plats { gap: 7px; flex-wrap: wrap; }
+.lv-proj-txt .lv-plat { width: 14px; height: 14px; }
+/* the close button is only for touch screens / phones; on desktop the panel simply follows the hover */
+.lv-steam-x { display: none; }
+@media (hover: none), (max-width: 700px) { .lv-steam-x { display: block; } }

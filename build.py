@@ -174,6 +174,13 @@ sub1("        desertRocks.children.forEach((m) => { m.material = name === 'fire'
      "        });")
 # the page's own images (Steam capsules in assets/steam) may load
 s = s.replace("img-src data: blob:;", "img-src 'self' data: blob:;", 1)
+# writing in the snow (src/snow.js): press and drag carves crisp grooves; hover no longer ploughs by accident
+snow_js = open('src/snow.js', encoding='utf8').read()
+sub1("      let lastFurrow = null;\n      function updateSnow(dt, time) {",
+     snow_js + "      let lastFurrow = null;\n      function updateSnow(dt, time) {\n        snowWrite.update(dt);")
+sub1("        let ploughed = false;\n        if (pointerActive) {", "        let ploughed = false;\n        if (false && pointerActive) {   // replaced by press-and-drag writing (snowWrite)")
+# no white portal ring when the scroll bursts the letters apart (the burst itself stays)
+sub1("        portalRing.visible = portalDisc.visible = flare > 0.01;", "        portalRing.visible = portalDisc.visible = false;")
 # phones: the five stones sit in the open lava in front of the big A (3 + 2, above the tracker), never behind its legs
 sub1("      const MOBILE_ROCK_SPOTS = [[-0.6, -0.44], [0.1, -0.48], [0.62, -0.42], [-0.32, -0.62], [0.4, -0.64]];",
      "      const MOBILE_ROCK_SPOTS = [[-0.58, -0.5], [0, -0.47], [0.58, -0.5], [-0.3, -0.7], [0.3, -0.7]];   // 3 + 2 in the open lava below the A\n"

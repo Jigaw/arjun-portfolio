@@ -10,7 +10,8 @@
      "plats": [
       "ps",
       "xbox",
-      "steam"
+      "steam",
+      "deck:Playable"
      ],
      "short": "You are Haroona, a Quaestor born with the ability to venture into a mysterious dimension: the Fold. On her quest for powerful hidden knowledge, she must learn to master the powers of the Fold to fight a secret society with a hostile agenda.",
      "release": "17 Oct, 2024",
@@ -37,7 +38,10 @@
      "name": "Little Nightmares III",
      "plats": [
       "ps",
-      "steam"
+      "xbox",
+      "ns",
+      "steam",
+      "deck:Verified"
      ],
      "short": "Little Nightmares III is an atmospheric adventure game in which you follow the journey of Low and Alone, two best friends in search of a way out of the Nowhere. In 2 players online cooperation or solo with an A.I., work together to solve puzzles and survive in this nightmarish world.",
      "release": "9 Oct, 2025",
@@ -69,7 +73,8 @@
      "id": 1368140,
      "name": "Corsair Cove",
      "plats": [
-      "steam"
+      "steam",
+      "deck:Playable"
      ],
      "short": "Build a sprawling pirate haven, raise a fleet to explore the high seas, and take on the Crown to keep the Age of Piracy alive! From ale to flintlock pistols, and from scallywags to swashbucklers, you’ll need to manage complex production chains and govern a rowdy crew to reign supreme over the seas!",
      "release": "31 Jul, 2026",
@@ -96,25 +101,10 @@
       "Base Building",
       "Grand Strategy"
      ]
-    },
-    {
-     "name": "Clove",
-     "code": true,
-     "plats": [
-      "pc"
-     ],
-     "short": "Base-building, turn-based card game. Functionality and requirements testing; task assignment and the bug database."
-    },
-    {
-     "name": "Philotes",
-     "code": true,
-     "plats": [
-      "steam",
-      "pc"
-     ],
-     "short": "3D platformer with multiplayer co-op. Functionality testing on Steam and the Windows Store."
     }
-   ]
+   ],
+   "logo": "side",
+   "note": "formerly PTW"
   },
   {
    "co": "Kwalee",
@@ -123,7 +113,8 @@
      "id": 3195440,
      "name": "Welcome to Elderfield",
      "plats": [
-      "steam"
+      "steam",
+      "deck:Verified"
      ],
      "short": "Welcome to Elderfield, a cozy horror RPG with hand-drawn art and dark lofi music. Manage your farm, befriend or romance the locals, investigate mysteries, decorate your home, fight terrifying creatures, fish, cook, seek the Old Gods, die in your sleep, and more... There's lots to do in Elderfield!",
      "release": "10 Sep, 2026",
@@ -155,7 +146,10 @@
      "id": 1933000,
      "name": "Luna Abyss",
      "plats": [
-      "steam"
+      "ps",
+      "xbox",
+      "steam",
+      "deck:Verified"
      ],
      "short": "Luna Abyss is a single player story driven action-adventure with fluid platforming and bullet hell combat. Follow the journey of Fawkes, a prisoner of Luna caught between a cryptic prophecy and their prison sentence.",
      "release": "21 May, 2026",
@@ -187,7 +181,11 @@
      "id": 2174380,
      "name": "Call of the Elder Gods",
      "plats": [
-      "steam"
+      "ps",
+      "xbox",
+      "ns",
+      "steam",
+      "deck:Verified"
      ],
      "short": "Journey to the far corners of the Earth and unearth ancient horrors in this Lovecraftian narrative puzzle adventure and sequel to 2020’s critically acclaimed Call of the Sea.",
      "release": "12 May, 2026",
@@ -215,7 +213,9 @@
       "First-Person"
      ]
     }
-   ]
+   ],
+   "logo": "kwalee",
+   "note": "current"
   }
  ]
 }

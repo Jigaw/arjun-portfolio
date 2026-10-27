@@ -187,19 +187,24 @@
 
   // ---------- Projects: titles grouped by studio with platform logos; hover / tap one for a Steam-style panel ----------
   const PROJ = /*PROJECTS*/null;   // filled in by build.py from src/projects.json
-  // PlayStation and Steam marks: Simple Icons (CC0); Xbox and PC are simple drawn marks
+  // PlayStation, Steam, Nintendo Switch, Steam Deck and ROG marks: Simple Icons (CC0); Xbox and PC are simple drawn marks
   const ICONS = {
     ps: { name: 'PlayStation', fill: 'M8.984 2.596v17.547l3.915 1.261V6.688c0-.69.304-1.151.794-.991.636.18.76.814.76 1.505v5.875c2.441 1.193 4.362-.002 4.362-3.152 0-3.237-1.126-4.675-4.438-5.827-1.307-.448-3.728-1.186-5.39-1.502zm4.656 16.241l6.296-2.275c.715-.258.826-.625.246-.818-.586-.192-1.637-.139-2.357.123l-4.205 1.5V14.98l.24-.085s1.201-.42 2.913-.615c1.696-.18 3.785.03 5.437.661 1.848.601 2.04 1.472 1.576 2.072-.465.6-1.622 1.036-1.622 1.036l-8.544 3.107V18.86zM1.807 18.6c-1.9-.545-2.214-1.668-1.352-2.32.801-.586 2.16-1.052 2.16-1.052l5.615-2.013v2.313L4.205 17c-.705.271-.825.632-.239.826.586.195 1.637.15 2.343-.12L8.247 17v2.074c-.12.03-.256.044-.39.073-1.939.331-3.996.196-6.038-.479z' },
     steam: { name: 'Steam', fill: 'M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.605 0 11.979 0zM7.54 18.21l-1.473-.61c.262.543.714.999 1.314 1.25 1.297.539 2.793-.076 3.332-1.375.263-.63.264-1.319.005-1.949s-.75-1.121-1.377-1.383c-.624-.26-1.29-.249-1.878-.03l1.523.63c.956.4 1.409 1.5 1.009 2.455-.397.957-1.497 1.41-2.454 1.012H7.54zm11.415-9.303c0-1.662-1.353-3.015-3.015-3.015-1.665 0-3.015 1.353-3.015 3.015 0 1.665 1.35 3.015 3.015 3.015 1.663 0 3.015-1.35 3.015-3.015zm-5.273-.005c0-1.252 1.013-2.266 2.265-2.266 1.249 0 2.266 1.014 2.266 2.266 0 1.251-1.017 2.265-2.266 2.265-1.253 0-2.265-1.014-2.265-2.265z' },
     xbox: { name: 'Xbox', stroke: 'M12 2.5a9.5 9.5 0 1 0 0 19a9.5 9.5 0 0 0 0-19zM7.2 6.4c1.9 1.1 3.5 2.6 4.8 4.4 1.3-1.8 2.9-3.3 4.8-4.4M6.6 17.2c1.4-2.3 3.2-4.3 5.4-6 2.2 1.7 4 3.7 5.4 6' },
-    pc: { name: 'PC', stroke: 'M3 4.5h18v11.5H3zM8.5 20h7M12 16v4' }
+    pc: { name: 'PC', stroke: 'M3 4.5h18v11.5H3zM8.5 20h7M12 16v4' },
+    ns: { name: 'Nintendo Switch', fill: 'M14.176 24h3.674c3.376 0 6.15-2.774 6.15-6.15V6.15C24 2.775 21.226 0 17.85 0H14.1c-.074 0-.15.074-.15.15v23.7c-.001.076.075.15.226.15zm4.574-13.199c1.351 0 2.399 1.125 2.399 2.398 0 1.352-1.125 2.4-2.399 2.4-1.35 0-2.4-1.049-2.4-2.4-.075-1.349 1.05-2.398 2.4-2.398zM11.4 0H6.15C2.775 0 0 2.775 0 6.15v11.7C0 21.226 2.775 24 6.15 24h5.25c.074 0 .15-.074.15-.149V.15c.001-.076-.075-.15-.15-.15zM9.676 22.051H6.15c-2.326 0-4.201-1.875-4.201-4.201V6.15c0-2.326 1.875-4.201 4.201-4.201H9.6l.076 20.102zM3.75 7.199c0 1.275.975 2.25 2.25 2.25s2.25-.975 2.25-2.25c0-1.273-.975-2.25-2.25-2.25s-2.25.977-2.25 2.25z' },
+    deck: { name: 'Steam Deck', fill: 'M8.999 0v4.309c4.242 0 7.694 3.45 7.694 7.691s-3.452 7.691-7.694 7.691V24c6.617 0 12-5.383 12-12s-5.383-12-12-12Zm0 6.011c-3.313 0-6 2.687-5.998 6a5.999 5.999 0 1 0 5.998-6z' },
+    rog: { name: 'ROG Ally', fill: 'M21.3906 5.5833c-1.3467.0115-3.4338.19541-5.9375.97657-1.6024.49851-3.916 2.74203-8.22459 6.90823-.56973.3204-2.67017-.8912-3.88085-1.461 0 0 1.9929 3.1699 2.70507 4.0957 1.06825 1.46 3.02735 2.3145 3.02735 2.3145-.17804-.1781-1.53019-1.6029-1.92188-2.4219-.24926-.3917.03418-.9624 1.95703-2.3867C10.86 12.3268 17.0569 7.09358 23.0391 5.66924c0 0-.601-.09488-1.6485-.08593V5.5833ZM24 7.7708c-2.0653.21366-4.06.81878-5.9473 1.70899C14.2783 11.2602 7.9043 15.8177 7.9043 15.8177c.28486.178.5706.3556.85546.498 3.06234 1.3531 7.58484 2.1716 8.43944 1.8867 2.3858-.7833 5.056-5.8026 5.875-8.1172 0 0-2.4933.9968-5.0215 2.1719-2.1009.9971-4.414 2.1368-4.414 2.1368l5.875-1.7813s-1.5676 3.7036-3.6328 4.1309c-2.0653.4273-5.6973-1.0332-5.6973-1.0332.2849-.2493 4.1302-3.0629 13.1035-6.73051.3917-.28487.6417-.74608.7129-1.20898V7.7708ZM0 11.2942c.35608.9615.8194 1.8525 1.35352 2.7071.64094.819 3.27477 1.4952 3.63086 1.5664C3.34638 14.4282 0 11.2942 0 11.2942Z' }
   };
   const SVGNS = 'http://www.w3.org/2000/svg';
-  function platIcon(kind) {
+  function platIcon(spec) {
+    const [kind, note] = spec.split(':');                       // e.g. 'deck:Verified' (Valve's Steam Deck rating)
     const I = ICONS[kind]; if (!I) return null;
+    const label = note ? I.name + ': ' + note : I.name;
     const v = document.createElementNS(SVGNS, 'svg'); v.setAttribute('viewBox', '0 0 24 24'); v.setAttribute('class', 'lv-plat');
-    v.setAttribute('role', 'img'); v.setAttribute('aria-label', I.name);
-    const tt = document.createElementNS(SVGNS, 'title'); tt.textContent = I.name; v.appendChild(tt);
+    v.setAttribute('role', 'img'); v.setAttribute('aria-label', label);
+    const tt = document.createElementNS(SVGNS, 'title'); tt.textContent = label; v.appendChild(tt);
     const p = document.createElementNS(SVGNS, 'path'); p.setAttribute('d', I.fill || I.stroke);
     if (I.stroke) p.setAttribute('class', 'st');
     v.appendChild(p);
@@ -259,13 +264,19 @@
   if (PROJ && projBox) {
     PROJ.groups.forEach((g, gi) => {
       const grp = el('div', 'lv-proj-grp rv'); grp.style.setProperty('--d', String(2 + gi));
-      grp.appendChild(el('small', 'lv-mono', g.co));
+      const head = el('div', 'lv-co');
+      if (g.logo) { const lg = el('span', 'lv-co-logo ' + g.logo); lg.setAttribute('role', 'img'); lg.setAttribute('aria-label', g.co); head.appendChild(lg); }
+      else head.appendChild(el('b', null, g.co));
+      if (g.note) head.appendChild(el('small', 'lv-mono', g.note));
+      grp.appendChild(head);
       g.items.forEach((it) => {
         const row = el('button', 'lv-proj'); row.type = 'button';
         if (it.id) { const im = el('img', 'lv-proj-img'); im.src = 'assets/steam/' + it.id + '-s.jpg'; im.alt = ''; im.width = 92; im.height = 35; im.loading = 'lazy'; row.appendChild(im); }
         else row.appendChild(el('span', 'lv-proj-img code lv-mono', 'Code'));
-        row.appendChild(el('span', 'lv-proj-name', it.name));
-        const pl = el('span', 'lv-plats'); it.plats.forEach((k) => { const ic = platIcon(k); if (ic) pl.appendChild(ic); }); row.appendChild(pl);
+        const txt = el('span', 'lv-proj-txt');
+        txt.appendChild(el('span', 'lv-proj-name', it.name));
+        const pl = el('span', 'lv-plats'); it.plats.forEach((k) => { const ic = platIcon(k); if (ic) pl.appendChild(ic); }); txt.appendChild(pl);
+        row.appendChild(txt);
         row.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') showPanel(it, row); });
         row.addEventListener('focus', () => showPanel(it, row));
         row.addEventListener('click', () => showPanel(it, row));
@@ -274,20 +285,16 @@
       projBox.appendChild(grp);
     });
   }
-  // the card (and its floating stone) stays while the pointer is on it or on its Steam panel
+  // the card (and its floating stone) stays while the pointer is on it or on its Steam panel. Leaving either waits a
+  // moment before hiding the panel, so the pointer can cross the gap between them (and reach "View on Steam")
+  let hideTimer = 0;
+  const hideSoon = () => { clearTimeout(hideTimer); hideTimer = setTimeout(() => { if (cardHover !== 1 && !panelHover) hidePanel(); }, 400); };
   cards.forEach((c, i) => {
-    c.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') cardHover = i; });
-    c.addEventListener('pointerleave', (e) => {
-      if (cardHover !== i) return;
-      cardHover = -1;
-      if (!(e.relatedTarget && steamEl.contains(e.relatedTarget))) hidePanel();
-    });
+    c.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') { cardHover = i; clearTimeout(hideTimer); } });
+    c.addEventListener('pointerleave', () => { if (cardHover === i) { cardHover = -1; hideSoon(); } });
   });
-  steamEl.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') panelHover = true; });
-  steamEl.addEventListener('pointerleave', (e) => {
-    panelHover = false;
-    if (!(e.relatedTarget && cards[1].contains(e.relatedTarget))) hidePanel();
-  });
+  steamEl.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') { panelHover = true; clearTimeout(hideTimer); } });
+  steamEl.addEventListener('pointerleave', () => { panelHover = false; hideSoon(); });
   // the panel sits beside the Projects card (phones: a centred pop-up over it)
   (function placePanel() {
     requestAnimationFrame(placePanel);
@@ -325,7 +332,7 @@
     // moment it leaves. Touch has no hover, so a tap on a stone shows it until the next tap.
     let want = natural >= 0 ? natural : labelHover >= 0 ? labelHover : focusIdx >= 0 ? focusIdx : cardHover >= 0 ? cardHover : panelHover ? 1 : touchOpen;
     if (want >= 0) lastWantAt = now;                                          // last real hover / tap
-    else if (active >= 0 && now - lastWantAt < 400) want = active;           // a moment's grace to move from the stone onto its card
+    else if (active >= 0 && now - lastWantAt < 600) want = active;           // a moment's grace to move from the stone onto its card
     S.hold = want;
 
     // once the stone is out of the lava its label pill appears above it; holding the hover fills the

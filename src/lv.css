@@ -62,13 +62,12 @@ html[data-theme]:not([data-theme="fire"]):not([data-theme="electric"]) .lv-brand
 @keyframes lv-pill-in { from { opacity: 0; transform: translateY(6px) scale(0.9); } to { opacity: 1; transform: none; } }
 @keyframes lv-pill-pop { to { opacity: 0; transform: scale(1.35); } }
 .lv-label.hide { opacity: 0 !important; }   /* fades only: the hovered label must keep its hover while its stone rises */
-.lv-pill { display: flex; align-items: center; gap: 8px; padding: 7px 12px 7px 10px; border-radius: 999px; font-size: 10.5px; white-space: nowrap; color: var(--lv-text);
+.lv-pill { display: flex; align-items: center; gap: 8px; padding: 7px 13px; border-radius: 999px; font-size: 10.5px; white-space: nowrap; color: var(--lv-text);
   background: rgba(22, 9, 4, 0.88); border: 1px solid var(--lv-line); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); transition: border-color 0.25s, box-shadow 0.25s, transform 0.3s var(--lv-ease); }
-.lv-pill i { font-style: normal; color: var(--lv-flame); }
-.lv-pill .dot { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--lv-flame); box-shadow: 0 0 10px rgba(255, 106, 26, 0.8);
-  background: conic-gradient(var(--lv-gold) calc(var(--p, 0) * 1turn), transparent 0); }
+/* holding the hover fills a thin gold line along the pill's foot; the card bursts out when it's full */
+.lv-pill { position: relative; overflow: hidden; }
+.lv-pill::after { content: ''; position: absolute; left: 0; bottom: 0; height: 2px; width: calc(var(--p, 0) * 100%); background: linear-gradient(90deg, var(--lv-flame), var(--lv-gold)); }
 .lv-label.hot .lv-pill, .lv-label:hover .lv-pill, .lv-label:focus-visible .lv-pill { border-color: var(--lv-line-2); transform: translateY(-3px); box-shadow: 0 0 26px rgba(255, 106, 26, 0.45); }
-.lv-label.seen .dot { background: var(--lv-gold); border-color: var(--lv-gold); animation: none; }
 .lv-label.seen .lv-pill { color: var(--lv-mute); }
 .lv-stem { width: 1px; height: 26px; background: linear-gradient(var(--lv-flame), rgba(255, 106, 26, 0)); }
 @keyframes lv-beat { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 106, 26, 0.7); } 60% { box-shadow: 0 0 0 7px rgba(255, 106, 26, 0); } }
@@ -120,8 +119,8 @@ html[data-theme]:not([data-theme="fire"]):not([data-theme="electric"]) .lv-brand
 /* experience: company, role and years on a timeline */
 .lv-tl { list-style: none; margin: 0; padding: 0 0 0 18px; position: relative; display: grid; gap: 4px; }
 .lv-tl::before { content: ''; position: absolute; left: 4px; top: 10px; bottom: 10px; width: 1px; background: linear-gradient(var(--lv-flame), rgba(255, 150, 70, 0.15)); }
-.lv-tl li { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid transparent; transition: background 0.25s, border-color 0.25s, transform 0.25s var(--lv-ease); }
-.lv-tl li::before { content: ''; position: absolute; left: -18px; top: 50%; width: 9px; height: 9px; margin-top: -4.5px; border-radius: 50%; background: var(--lv-ink); border: 1.5px solid var(--lv-flame); }
+.lv-tl li { position: relative; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid transparent; transition: background 0.25s, border-color 0.25s, transform 0.25s var(--lv-ease); }
+.lv-tl li::before { content: ''; position: absolute; left: -18px; top: 14px; width: 9px; height: 9px; border-radius: 50%; background: var(--lv-ink); border: 1.5px solid var(--lv-flame); }
 .lv-tl li.now::before { background: var(--lv-gold); border-color: var(--lv-gold); box-shadow: 0 0 12px var(--lv-flame); animation: lv-beat 2.2s infinite; }
 .lv-tl li:hover { background: var(--lv-bg-2); border-color: var(--lv-line); transform: translateX(3px); }
 .lv-tl .co b { display: block; font-size: 14px; font-weight: 600; line-height: 1.25; }
@@ -379,3 +378,63 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
 .lv-co-logo.ptw { width: 26px; height: 15px; -webkit-mask-image: url(assets/logos/ptw.png); mask-image: url(assets/logos/ptw.png); }
 /* the card titles carry the flame colour (the small numbered labels above them are gone) */
 .lv-card h3 { margin-top: 2px; color: var(--lv-flame); background: none !important; -webkit-text-fill-color: currentColor; }
+
+/* the scene behind an open card softens: a gentle blur and dim (the card, labels and buttons stay crisp) */
+.lv-dim { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.35s ease;
+  -webkit-backdrop-filter: blur(6px) brightness(0.82); backdrop-filter: blur(6px) brightness(0.82); }
+.lv-dim.on { opacity: 1; }
+@media (max-width: 700px) { .lv-dim { -webkit-backdrop-filter: blur(4px) brightness(0.8); backdrop-filter: blur(4px) brightness(0.8); } }
+
+/* ---------- Skills: a looping strip of the five groups over a ring of the chosen group's skills ---------- */
+.lv-card.lv-skills { width: 440px; }
+.lv-strip { position: relative; height: 56px; margin: 2px auto 0; max-width: 300px; border-radius: 999px; background: rgba(0, 0, 0, 0.22); }
+.lv-hub { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--s, 1)); width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; padding: 0; cursor: pointer; color: var(--lv-gold);
+  background: radial-gradient(circle at 35% 30%, rgba(255, 200, 114, 0.22), rgba(40, 18, 8, 0.9) 70%); border: 1px solid var(--lv-line-2) !important; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  transition: left 0.45s var(--lv-ease), transform 0.45s var(--lv-ease), opacity 0.3s, background 0.25s, color 0.25s, box-shadow 0.25s; }
+.lv-hub-ico { width: 18px; height: 18px; }
+.lv-hub-ico .st, .lv-core-ico .st { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.lv-hub-name { position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 11px; font-weight: 600; color: var(--lv-text); opacity: 0; transition: opacity 0.25s; }
+.lv-hub { opacity: 0.6; }
+.lv-hub:hover, .lv-hub.on { opacity: 1; }
+.lv-hub.on { color: var(--lv-ink); background: linear-gradient(135deg, var(--lv-gold), var(--lv-flame)); box-shadow: 0 0 24px rgba(255, 106, 26, 0.55); }
+.lv-hub-name { display: none; }
+.lv-orbit { position: relative; height: 310px; }
+.lv-orbit::before { content: ''; position: absolute; left: 50%; top: 50%; width: calc(var(--rx, 120px) * 2); height: calc(var(--ry, 100px) * 2); transform: translate(-50%, -50%);
+  border-radius: 50%; border: 1px dashed rgba(255, 150, 70, 0.28); transition: width 0.4s var(--lv-ease), height 0.4s var(--lv-ease); }
+.lv-orbit-core { z-index: 1; cursor: ew-resize; touch-action: pan-y; position: absolute; left: 50%; top: 50%; width: 92px; height: 92px; transform: translate(-50%, -50%); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; text-align: center;
+  background: linear-gradient(135deg, var(--lv-gold), var(--lv-flame)); box-shadow: 0 0 34px rgba(255, 106, 26, 0.55); }
+/* little arrows either side of the centre circle: slide across it to step through the groups */
+.lv-orbit-core::before, .lv-orbit-core::after { content: ''; position: absolute; top: 50%; width: 7px; height: 7px; border: solid var(--lv-gold); border-width: 2px 2px 0 0; opacity: 0.55; transition: opacity 0.2s, transform 0.2s; }
+.lv-orbit-core::before { left: -15px; transform: translateY(-50%) rotate(-135deg); }
+.lv-orbit-core::after { right: -15px; transform: translateY(-50%) rotate(45deg); }
+.lv-orbit-core:hover::before { opacity: 1; transform: translate(-3px, -50%) rotate(-135deg); }
+.lv-orbit-core:hover::after { opacity: 1; transform: translate(3px, -50%) rotate(45deg); }
+.lv-orbit-core b { font-size: 11px; line-height: 1.15; color: var(--lv-ink); max-width: 78px; }
+.lv-core-ico { width: 24px; height: 24px; color: var(--lv-ink); }
+.lv-orbit.pop .lv-orbit-core { animation: lv-core-pop 0.4s var(--lv-ease); }
+@keyframes lv-core-pop { from { transform: translate(-50%, -50%) scale(0.8); } }
+.lv-orb { position: absolute; z-index: 2; left: 50%; top: 50%; opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+.lv-orbit.pop .lv-orb { left: var(--x); top: var(--y); opacity: 1; transform: translate(-50%, -50%) scale(1);
+  transition: left 0.5s cubic-bezier(0.2, 1.4, 0.4, 1), top 0.5s cubic-bezier(0.2, 1.4, 0.4, 1), transform 0.5s cubic-bezier(0.2, 1.4, 0.4, 1), opacity 0.25s; transition-delay: calc(var(--i, 0) * 35ms); }
+.lv-orb.chip { padding: 6px 11px; border-radius: 999px; font-size: 12px; white-space: nowrap; color: var(--lv-text); background: rgba(30, 14, 6, 0.95); border: 1px solid var(--lv-line); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); }
+.lv-orb.chip:hover { border-color: var(--lv-flame); color: var(--lv-gold); }
+.lv-orb.logo { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: #fff8f0; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(255, 150, 70, 0.35); }
+.lv-orb-svg { width: 23px; height: 23px; fill: currentColor; }
+.lv-orb-txt { font: 800 10px/1 'Inter', sans-serif; color: #1f1f1f; letter-spacing: -0.02em; }
+.lv-orb-tip { position: absolute; top: calc(100% + 4px); left: 50%; transform: translateX(-50%); padding: 1px 6px; border-radius: 5px; font-size: 10px; font-weight: 600; white-space: nowrap; color: var(--lv-text);
+  background: rgba(10, 4, 2, 0.75); pointer-events: none; z-index: 3; }
+.lv-orb.logo:hover .lv-orb-tip { color: var(--lv-gold); }
+@media (max-width: 700px) {
+  .lv-card.lv-skills { width: calc(100vw - 20px); }
+  .lv-strip { height: 52px; }
+  .lv-hub { width: 38px; height: 38px; }
+  .lv-orbit { height: 290px; }
+  .lv-orb.chip { padding: 5px 8px; font-size: 10.5px; }
+  .lv-orb.logo { width: 38px; height: 38px; }
+  .lv-orb-svg { width: 20px; height: 20px; }
+  .lv-orbit-core { width: 80px; height: 80px; }
+}
+@media (prefers-reduced-motion: reduce) { .lv-orbit.pop .lv-orb, .lv-hub { transition: opacity 0.2s; } }
+
+/* phones: the Steam pop-up sits over the Projects card, so the card softens behind it too */
+@media (max-width: 700px) { body.lv-steam-on .lv-card.on { filter: blur(3px) brightness(0.6); transition: filter 0.3s; } }

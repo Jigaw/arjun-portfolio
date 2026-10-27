@@ -1,5 +1,6 @@
 <!-- ===== Lava stones portfolio UI: each stone in the lava holds one part of the CV ===== -->
 <div id="lv">
+  <div class="lv-dim" id="lv-dim" aria-hidden="true"></div>
   <div class="lv-brand"><b>Arjun H</b><span class="lv-mono">QA · Kwalee</span></div>
 
   <div class="lv-quick">
@@ -34,17 +35,11 @@
     </div>
   </article>
 
-  <!-- 2 · SKILLS -->
-  <article class="lv-card wide" data-i="2" aria-label="Skills">
+  <!-- 2 · SKILLS: group hubs; hover / tap one and its skills pop out in a circle (built by lv.js) -->
+  <article class="lv-card wide lv-skills" data-i="2" aria-label="Skills">
     <div class="in">
       <h3 class="rv" style="--d:1">The toolkit</h3>
-      <div class="lv-scroll">
-        <div class="lv-grp rv" style="--d:2"><small class="lv-mono">Testing</small><div class="lv-chips"><span>Manual</span><span>Game testing</span><span>Functionality</span><span>Regression</span><span>Smoke</span><span>Sanity</span><span>Ad-hoc</span><span>Re-testing</span><span>Compliance TRC/XR</span></div></div>
-        <div class="lv-grp rv" style="--d:3"><small class="lv-mono">Process</small><div class="lv-chips"><span>SDLC</span><span>STLC</span><span>Test suite creation</span><span>Bug tracking</span><span>P0–P3 triage</span></div></div>
-        <div class="lv-grp rv" style="--d:4"><small class="lv-mono">Tools &amp; automation</small><div class="lv-chips"><span>Jira</span><span>TestRail</span><span>Selenium · Java</span><span>n8n</span><span>GitHub</span><span>Hugging Face</span><span>MS Office · Teams</span></div></div>
-        <div class="lv-grp rv" style="--d:5"><small class="lv-mono">Creative &amp; AI</small><div class="lv-chips"><span>ComfyUI</span><span>DaVinci Resolve</span><span>Canva</span><span>Affinity</span></div></div>
-        <div class="lv-grp rv" style="--d:6"><small class="lv-mono">People</small><div class="lv-chips"><span>Team management</span><span>Task management</span><span>Communication</span><span>Adaptability</span><span>Problem-solving</span></div></div>
-      </div>
+      <div class="lv-orbit-wrap rv" style="--d:2" id="lv-skills"></div>
     </div>
   </article>
 

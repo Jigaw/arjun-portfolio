@@ -459,3 +459,24 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
 .lv-tl li { align-items: flex-start; }
 .lv-tl li::before { top: 14.5px; margin-top: 0; }
 .lv-tl time { margin-top: 3px; }
+
+/* education: a % badge beside each school; hover (or tap) it, or its row, and it opens into a little gauge whose needle swings up to the score */
+.lv-row > div:nth-child(2) { flex: 1 1 auto; min-width: 0; }
+.lv-gauge { position: relative; flex: none; align-self: center; width: 34px; height: 34px; padding: 0; border-radius: 50%; cursor: pointer; overflow: hidden; color: var(--lv-gold);
+  background: rgba(255, 150, 70, 0.08); border: 1px solid var(--lv-line-2) !important; transition: width 0.35s var(--lv-ease), height 0.35s var(--lv-ease), border-radius 0.35s var(--lv-ease), background 0.3s; }
+.lv-gauge .pc { position: absolute; inset: 0; display: grid; place-items: center; font: 700 14px/1 'Inter', sans-serif; transition: opacity 0.2s, transform 0.3s; }
+.lv-gauge svg { position: absolute; left: 50%; top: 5px; width: 56px; height: 32px; transform: translateX(-50%); opacity: 0; transition: opacity 0.25s 0.1s; }
+.lv-gauge .trk, .lv-gauge .val { fill: none; stroke-width: 5; stroke-linecap: round; }
+.lv-gauge .trk { stroke: rgba(255, 150, 70, 0.18); }
+.lv-gauge .val { stroke: var(--lv-flame); stroke-dasharray: 100; stroke-dashoffset: 100; transition: stroke-dashoffset 0.25s; }
+.lv-gauge .ndl { stroke: var(--lv-text); stroke-width: 2; stroke-linecap: round; transform-origin: 30px 30px; transform: rotate(-90deg); transition: transform 0.2s; }
+.lv-gauge .hub { fill: var(--lv-gold); }
+.lv-gauge b { position: absolute; left: 0; right: 0; bottom: 4px; font: 700 9.5px/1 'JetBrains Mono', monospace !important; color: var(--lv-gold); text-align: center; opacity: 0; transition: opacity 0.25s 0.5s; }
+.lv-row:hover .lv-gauge, .lv-gauge:focus-visible, .lv-row.gauge-on .lv-gauge { width: 70px; height: 54px; border-radius: 14px; background: rgba(255, 150, 70, 0.12); }
+.lv-row:hover .lv-gauge .pc, .lv-gauge:focus-visible .pc, .lv-row.gauge-on .lv-gauge .pc { opacity: 0; transform: scale(0.5); }
+.lv-row:hover .lv-gauge svg, .lv-gauge:focus-visible svg, .lv-row.gauge-on .lv-gauge svg,
+.lv-row:hover .lv-gauge b, .lv-gauge:focus-visible b, .lv-row.gauge-on .lv-gauge b { opacity: 1; }
+/* the needle sweeps up with a little overshoot, the arc fills behind it */
+.lv-row:hover .lv-gauge .ndl, .lv-gauge:focus-visible .ndl, .lv-row.gauge-on .lv-gauge .ndl { transform: rotate(calc(-90deg + var(--v) * 180deg)); transition: transform 1.2s cubic-bezier(0.3, 1.45, 0.5, 1) 0.2s; }
+.lv-row:hover .lv-gauge .val, .lv-gauge:focus-visible .val, .lv-row.gauge-on .lv-gauge .val { stroke-dashoffset: calc(100 - var(--v) * 100); transition: stroke-dashoffset 1s cubic-bezier(0.3, 0.9, 0.4, 1) 0.2s; }
+@media (prefers-reduced-motion: reduce) { .lv-gauge .ndl, .lv-gauge .val { transition: none !important; } }

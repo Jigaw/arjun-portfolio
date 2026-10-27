@@ -542,6 +542,9 @@
     })();
   })();
 
+  // education gauges: a tap opens / closes a row's gauge (mouse users just hover the row)
+  document.querySelectorAll('.lv-gauge').forEach((g) => g.addEventListener('click', () => g.closest('.lv-row').classList.toggle('gauge-on')));
+
   // touch screens and phones: each card gets a × in its corner to close it
   cards.forEach((c) => {
     const x = document.createElement('button');

@@ -447,3 +447,15 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
 
 /* labels under an open card are hidden (they'd show through its glass as a blur) */
 .lv-label.under { opacity: 0 !important; pointer-events: none !important; }
+
+/* the card's × goes the moment its card starts closing */
+.lv-card:not(.on) .lv-close { display: none !important; }
+/* experience: each company's official logo (gold-tinted) in place of its name */
+.lv-tl .co .lv-co-logo { display: block; height: 18px; margin-bottom: 3px; background: var(--lv-gold); }
+.lv-tl .co .lv-co-logo.kwalee { width: 70px; }
+.lv-tl .co .lv-co-logo.side { width: 44px; }
+.lv-tl .co .lv-co-logo.ptw { width: 32px; }
+/* dot and dates line up with the logo row */
+.lv-tl li { align-items: flex-start; }
+.lv-tl li::before { top: 14.5px; margin-top: 0; }
+.lv-tl time { margin-top: 3px; }

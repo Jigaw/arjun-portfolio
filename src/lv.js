@@ -245,7 +245,7 @@
       }
       const foot = el('div', 'lv-steam-foot');
       const a = el('a', null, 'View on Steam ↗'); a.href = 'https://store.steampowered.com/app/' + it.id + '/'; a.target = '_blank'; a.rel = 'noopener noreferrer';
-      foot.append(a, el('small', null, 'Reviews as of ' + PROJ.asOf));
+      foot.appendChild(a);
       body.appendChild(foot);
     }
     steamEl.appendChild(body);

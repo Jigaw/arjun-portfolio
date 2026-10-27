@@ -592,7 +592,7 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
 .lv-steam-tags small { display: block; margin-bottom: 6px; font-size: 11px; color: #556772; }
 .lv-steam-tags .chips { display: flex; flex-wrap: wrap; gap: 4px; }
 .lv-steam-tags .chips span { padding: 2px 7px; border-radius: 2px; font-size: 11px; color: #67c1f5; background: rgba(103, 193, 245, 0.2); }
-.lv-steam-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+.lv-steam-foot { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.06); }
 .lv-steam-foot a { color: #fff; font-size: 12.5px; font-weight: 600; text-decoration: none; padding: 6px 10px; border-radius: 3px; background: linear-gradient(90deg, #47bfff, #1a44c2); }
 .lv-steam-foot small { font-size: 10px; color: #556772; }
 @media (max-width: 700px) {
@@ -8843,7 +8843,7 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
       }
       const foot = el('div', 'lv-steam-foot');
       const a = el('a', null, 'View on Steam ↗'); a.href = 'https://store.steampowered.com/app/' + it.id + '/'; a.target = '_blank'; a.rel = 'noopener noreferrer';
-      foot.append(a, el('small', null, 'Reviews as of ' + PROJ.asOf));
+      foot.appendChild(a);
       body.appendChild(foot);
     }
     steamEl.appendChild(body);

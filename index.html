@@ -349,7 +349,7 @@ html[data-theme]:not([data-theme="fire"]):not([data-theme="electric"]) .lv-brand
 /* content scrolls only if it must, with no visible scrollbar: a soft fade shows there is more */
 .lv-scroll { max-height: var(--mh, 60vh); overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: none; -ms-overflow-style: none; }
 .lv-scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }
-.lv-scroll.more { -webkit-mask-image: linear-gradient(#000 calc(100% - 34px), transparent); mask-image: linear-gradient(#000 calc(100% - 34px), transparent); }
+
 .lv-foot { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--lv-line); font-size: 9.5px; color: var(--lv-mute); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 /* previous / next between sections */
 .lv-nav { display: flex; align-items: center; gap: 6px; pointer-events: auto; }
@@ -680,6 +680,15 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
 
 /* phones: the Steam pop-up sits over the Projects card, so the card softens behind it too */
 @media (max-width: 700px) { body.lv-steam-on .lv-card.on { filter: blur(3px) brightness(0.6); transition: filter 0.3s; } }
+
+/* the card's close cross: only where there's no hover (touch screens) or on phones */
+.lv-close { position: absolute; top: 10px; right: 10px; z-index: 4; width: 32px; height: 32px; display: none; place-items: center; padding: 0; border-radius: 50%; cursor: pointer;
+  font: 400 22px/1 system-ui, sans-serif; color: var(--lv-text); background: rgba(0, 0, 0, 0.35); border: 1px solid var(--lv-line) !important; }
+.lv-close:active { background: rgba(0, 0, 0, 0.6); }
+@media (hover: none), (max-width: 700px) { .lv-close { display: grid; } .lv-card h3 { padding-right: 38px; } }
+
+/* labels under an open card are hidden (they'd show through its glass as a blur) */
+.lv-label.under { opacity: 0 !important; pointer-events: none !important; }
 
 </style>
 </head>
@@ -9099,8 +9108,8 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
     // the hold timer starts with the hover itself (not when the stone happens to be up), so the card
     // always bursts out the same moment after you settle on a stone
     if (want !== hov.i) { hov.i = want; hov.upAt = want >= 0 ? now : 0; }
-    // a tap is a deliberate pick: its card opens quicker than a mouse hover's (which waits out passing pointers)
-    const prog = hov.upAt ? Math.min(1, (now - hov.upAt) / (want >= 0 && want === touchOpen ? 320 : HOLD)) : 0;
+    // a tap is a click: its card opens at once (a mouse hover waits out passing pointers)
+    const prog = hov.upAt ? (want >= 0 && want === touchOpen ? 1 : Math.min(1, (now - hov.upAt) / HOLD)) : 0;
     const held = prog >= 1;
     showCard(held ? want : -1);
     if (active >= 0 && now - shownAt > 700) markSeen(active);
@@ -9124,8 +9133,16 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
       if (!vis) continue;
       const ls = sizeOf(L), lw = ls.w || 120, lh = ls.h || 54;
       const ay = r.y - Math.max(8, r.r * 0.85);
-      L.style.transform = 'translate3d(' + Math.round(Math.max(8, Math.min(vw - lw - 8, r.x - lw / 2))) + 'px,' + Math.round(Math.max(uiTop(vw), ay - 4 - lh)) + 'px,0)';
+      const lx = Math.round(Math.max(8, Math.min(vw - lw - 8, r.x - lw / 2))), ly = Math.round(Math.max(uiTop(vw), ay - 4 - lh));
+      L.style.transform = 'translate3d(' + lx + 'px,' + ly + 'px,0)';
       L.style.setProperty('--p', (i === want ? prog : 0).toFixed(3));
+      // a label sitting under the open card would show through its glass as a blur: hide it until the card goes
+      let under = false;
+      if (active >= 0 && i !== active && pos[active].init) {
+        const cp = pos[active], cz = sizeOf(cards[active]);
+        under = lx < cp.x + cz.w && lx + lw > cp.x && ly < cp.y + cz.h && ly + lh > cp.y;
+      }
+      L.classList.toggle('under', under);
     }
 
     if (active < 0) return;
@@ -9139,7 +9156,7 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
     if (r && r.vis && !fallback) {
       ax = r.x; ay = r.y - Math.max(8, r.r * 0.85);                 // top of the stone
       const room = Math.round(ay - 22 - top);
-      const mh = narrow ? Math.max(120, Math.min(420, room - 96)) : 2000;
+      const mh = narrow ? Math.max(160, vh - top - 120) : 2000;              // phones: the card may cover its stone rather than squeeze
       if (c._mh !== mh) { c._mh = mh; c.style.setProperty('--mh', mh + 'px'); size.delete(c); cs = sizeOf(c); }
       if (!narrow && cs.h > room) {
         if (!p.side) p.side = ax > vw / 2 ? -1 : 1;                 // chosen once per opening: no jumping
@@ -9188,6 +9205,14 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
       }, ready ? 250 : 0);
     })();
   })();
+
+  // touch screens and phones: each card gets a × in its corner to close it
+  cards.forEach((c) => {
+    const x = document.createElement('button');
+    x.type = 'button'; x.className = 'lv-close'; x.textContent = '×'; x.setAttribute('aria-label', 'Close');
+    x.addEventListener('click', (e) => { e.stopPropagation(); touchOpen = -1; lastWantAt = 0; hidePanel(); });
+    c.appendChild(x);
+  });
 
   // ---------- input ----------
   // touch: tap a stone to show its card, tap anywhere else to hide it (mouse users just hover)

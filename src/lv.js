@@ -443,8 +443,8 @@
     // the hold timer starts with the hover itself (not when the stone happens to be up), so the card
     // always bursts out the same moment after you settle on a stone
     if (want !== hov.i) { hov.i = want; hov.upAt = want >= 0 ? now : 0; }
-    // a tap is a deliberate pick: its card opens quicker than a mouse hover's (which waits out passing pointers)
-    const prog = hov.upAt ? Math.min(1, (now - hov.upAt) / (want >= 0 && want === touchOpen ? 320 : HOLD)) : 0;
+    // a tap is a click: its card opens at once (a mouse hover waits out passing pointers)
+    const prog = hov.upAt ? (want >= 0 && want === touchOpen ? 1 : Math.min(1, (now - hov.upAt) / HOLD)) : 0;
     const held = prog >= 1;
     showCard(held ? want : -1);
     if (active >= 0 && now - shownAt > 700) markSeen(active);
@@ -468,8 +468,16 @@
       if (!vis) continue;
       const ls = sizeOf(L), lw = ls.w || 120, lh = ls.h || 54;
       const ay = r.y - Math.max(8, r.r * 0.85);
-      L.style.transform = 'translate3d(' + Math.round(Math.max(8, Math.min(vw - lw - 8, r.x - lw / 2))) + 'px,' + Math.round(Math.max(uiTop(vw), ay - 4 - lh)) + 'px,0)';
+      const lx = Math.round(Math.max(8, Math.min(vw - lw - 8, r.x - lw / 2))), ly = Math.round(Math.max(uiTop(vw), ay - 4 - lh));
+      L.style.transform = 'translate3d(' + lx + 'px,' + ly + 'px,0)';
       L.style.setProperty('--p', (i === want ? prog : 0).toFixed(3));
+      // a label sitting under the open card would show through its glass as a blur: hide it until the card goes
+      let under = false;
+      if (active >= 0 && i !== active && pos[active].init) {
+        const cp = pos[active], cz = sizeOf(cards[active]);
+        under = lx < cp.x + cz.w && lx + lw > cp.x && ly < cp.y + cz.h && ly + lh > cp.y;
+      }
+      L.classList.toggle('under', under);
     }
 
     if (active < 0) return;
@@ -483,7 +491,7 @@
     if (r && r.vis && !fallback) {
       ax = r.x; ay = r.y - Math.max(8, r.r * 0.85);                 // top of the stone
       const room = Math.round(ay - 22 - top);
-      const mh = narrow ? Math.max(120, Math.min(420, room - 96)) : 2000;
+      const mh = narrow ? Math.max(160, vh - top - 120) : 2000;              // phones: the card may cover its stone rather than squeeze
       if (c._mh !== mh) { c._mh = mh; c.style.setProperty('--mh', mh + 'px'); size.delete(c); cs = sizeOf(c); }
       if (!narrow && cs.h > room) {
         if (!p.side) p.side = ax > vw / 2 ? -1 : 1;                 // chosen once per opening: no jumping
@@ -532,6 +540,14 @@
       }, ready ? 250 : 0);
     })();
   })();
+
+  // touch screens and phones: each card gets a × in its corner to close it
+  cards.forEach((c) => {
+    const x = document.createElement('button');
+    x.type = 'button'; x.className = 'lv-close'; x.textContent = '×'; x.setAttribute('aria-label', 'Close');
+    x.addEventListener('click', (e) => { e.stopPropagation(); touchOpen = -1; lastWantAt = 0; hidePanel(); });
+    c.appendChild(x);
+  });
 
   // ---------- input ----------
   // touch: tap a stone to show its card, tap anywhere else to hide it (mouse users just hover)

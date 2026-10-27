@@ -107,7 +107,7 @@ html[data-theme]:not([data-theme="fire"]):not([data-theme="electric"]) .lv-brand
 /* content scrolls only if it must, with no visible scrollbar: a soft fade shows there is more */
 .lv-scroll { max-height: var(--mh, 60vh); overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: none; -ms-overflow-style: none; }
 .lv-scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }
-.lv-scroll.more { -webkit-mask-image: linear-gradient(#000 calc(100% - 34px), transparent); mask-image: linear-gradient(#000 calc(100% - 34px), transparent); }
+
 .lv-foot { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--lv-line); font-size: 9.5px; color: var(--lv-mute); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 /* previous / next between sections */
 .lv-nav { display: flex; align-items: center; gap: 6px; pointer-events: auto; }
@@ -438,3 +438,12 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
 
 /* phones: the Steam pop-up sits over the Projects card, so the card softens behind it too */
 @media (max-width: 700px) { body.lv-steam-on .lv-card.on { filter: blur(3px) brightness(0.6); transition: filter 0.3s; } }
+
+/* the card's close cross: only where there's no hover (touch screens) or on phones */
+.lv-close { position: absolute; top: 10px; right: 10px; z-index: 4; width: 32px; height: 32px; display: none; place-items: center; padding: 0; border-radius: 50%; cursor: pointer;
+  font: 400 22px/1 system-ui, sans-serif; color: var(--lv-text); background: rgba(0, 0, 0, 0.35); border: 1px solid var(--lv-line) !important; }
+.lv-close:active { background: rgba(0, 0, 0, 0.6); }
+@media (hover: none), (max-width: 700px) { .lv-close { display: grid; } .lv-card h3 { padding-right: 38px; } }
+
+/* labels under an open card are hidden (they'd show through its glass as a blur) */
+.lv-label.under { opacity: 0 !important; pointer-events: none !important; }

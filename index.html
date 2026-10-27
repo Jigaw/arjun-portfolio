@@ -6349,7 +6349,8 @@ float sfRip(vec2 p) { float w = sfN(p * 0.15) * 6.0; return sin(p.x * 1.7 + p.y 
         }
         return false;
       }
-      // ===== Writing in the snow: press and drag on the snow floor to draw. Each stroke is carved into a fine
+      // ===== Writing in the snow: with a mouse, just moving over the snow floor writes; on touch screens a finger
+      // drag writes. Each stroke is carved into a fine
       // "groove" texture over the floor (much finer than the snow mesh), which the snow shader turns into a
       // crisp channel: cool blue shadow inside, a bright rim, light catching its walls. Fresh snowfall slowly
       // fills the writing back in. Injected into the scene by build.py. =====
@@ -6360,6 +6361,7 @@ float sfRip(vec2 p) { float w = sfN(p * 0.15) * 6.0; return sin(p.x * 1.7 + p.y 
         g.fillStyle = '#000'; g.fillRect(0, 0, TW, TH);
         const tex = new THREE.CanvasTexture(cv);
         tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter; tex.generateMipmaps = false;
+        tex.flipY = false;                                                         // canvas rows = world z as-is, so the line lands exactly under the pointer
         const trailU = { value: tex }, rectU = { value: new THREE.Vector4(SNOW_X0, SNOW_Z0, SNOW_W, SNOW_D) }, texelU = { value: new THREE.Vector2(1 / TW, 1 / TH) };
         // layer the grooves on top of the snow shader's own wind ripples and grain
         const baseCompile = snowMat.onBeforeCompile;
@@ -6389,7 +6391,7 @@ float sfRip(vec2 p) { float w = sfN(p * 0.15) * 6.0; return sin(p.x * 1.7 + p.y 
         snowMat.needsUpdate = true;
 
         const P = new THREE.Vector3(), ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
-        let pen = null, dirty = false, fadeAcc = 0, crunchT = 0, hinted = false;
+        let pen = null, hover = null, dirty = false, fadeAcc = 0, crunchT = 0;
         const toTex = (x, z) => [(x - SNOW_X0) / SNOW_W * TW, (z - SNOW_Z0) / SNOW_D * TH];
         const inside = (p) => p.x > SNOW_X0 + 1 && p.x < SNOW_X0 + SNOW_W - 1 && p.z > SNOW_Z0 + 1 && p.z < SNOW_Z0 + SNOW_D - 1 && p.z > 1.2;
         function hitAt(cx, cy) {
@@ -6413,7 +6415,7 @@ float sfRip(vec2 p) { float w = sfN(p * 0.15) * 6.0; return sin(p.x * 1.7 + p.y 
         }
         // capture phase: a press on the snow writes instead of turning the camera
         container.addEventListener('pointerdown', (e) => {
-          if (currentTheme !== 'snow' || pen) return;
+          if (currentTheme !== 'snow' || pen || e.pointerType === 'mouse') return;
           const p = hitAt(e.clientX, e.clientY);
           if (!p) return;
           e.stopPropagation();
@@ -6422,6 +6424,22 @@ float sfRip(vec2 p) { float w = sfN(p * 0.15) * 6.0; return sin(p.x * 1.7 + p.y 
           stroke(p, p); powder(p, 4);
           pointerActive = false;
         }, true);
+        // mouse: every move over the snow carves the line from the last point (no press needed)
+        window.addEventListener('pointermove', (e) => {
+          if (e.pointerType !== 'mouse' || currentTheme !== 'snow' || isDragging) { if (e.pointerType === 'mouse') hover = null; return; }
+          const p = hitAt(e.clientX, e.clientY);
+          if (!p) { hover = null; return; }
+          if (!hover) { hover = { last: p.clone(), dist: 0 }; return; }
+          const d = Math.hypot(p.x - hover.last.x, p.z - hover.last.z);
+          if (d < 0.05) return;
+          if (d > 6) { hover.last.copy(p); return; }                          // a jump (pointer left and came back): no line across
+          stroke(hover.last, p);
+          hover.dist += d;
+          if (hover.dist > 0.9) { hover.dist = 0; powder(p, 2); }
+          if (crunchT <= 0) { crunchT = 0.09; playHover('snow', p.x, true); }
+          hover.last.copy(p);
+        });
+        document.addEventListener('pointerout', (e) => { if (!e.relatedTarget) hover = null; });
         window.addEventListener('pointermove', (e) => {
           if (!pen || e.pointerId !== pen.id) return;
           e.stopImmediatePropagation();                                            // no camera turn, no wall push while writing
@@ -6440,21 +6458,9 @@ float sfRip(vec2 p) { float w = sfN(p * 0.15) * 6.0; return sin(p.x * 1.7 + p.y 
         window.addEventListener('pointerup', lift);
         window.addEventListener('pointercancel', lift);
 
-        function hint() {
-          const b = document.createElement('div');
-          b.className = 'lv-moon-note below'; b.textContent = 'Press and drag to write in the snow';
-          b.style.left = '50%'; b.style.top = Math.round(window.innerHeight * 0.68) + 'px'; b.style.marginLeft = '-0px';
-          document.body.appendChild(b);
-          b.style.left = Math.max(10, (window.innerWidth - b.offsetWidth) / 2) + 'px';
-          b.style.setProperty('--tail', '50%');
-          b.animate([{ opacity: 0, transform: 'translateY(8px) rotate(-2deg)' }, { opacity: 1, transform: 'translateY(0) rotate(-2deg)', offset: 0.12 },
-            { opacity: 1, transform: 'translateY(0) rotate(-2deg)', offset: 0.88 }, { opacity: 0, transform: 'translateY(-6px) rotate(-2deg)' }],
-          { duration: 3600, easing: 'ease-out', fill: 'forwards' }).onfinish = () => b.remove();
-        }
         function update(dt) {
           crunchT -= dt;
-          if (currentTheme !== 'snow') { pen = null; return; }
-          if (!hinted && window.__arjunIntroDone) { hinted = true; setTimeout(hint, 700); }
+          if (currentTheme !== 'snow') { pen = null; hover = null; return; }
           // fresh snow slowly fills the writing back in (about a minute and a half to vanish)
           fadeAcc += dt;
           if (fadeAcc > 0.5) { fadeAcc = 0; g.fillStyle = 'rgba(0,0,0,0.012)'; g.fillRect(0, 0, TW, TH); dirty = true; }

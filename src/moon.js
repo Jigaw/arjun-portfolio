@@ -53,45 +53,58 @@ void main() {
         const gift = new THREE.Group(), lid = new THREE.Group(), bow = new THREE.Group();
         const giftMats = [];
         {
-          const cv = document.createElement('canvas'); cv.width = cv.height = 512;
+          // wrapping paper: a seamless tile (flakes that cross an edge are drawn on the other side too)
+          const TS = 1024, cv = document.createElement('canvas'); cv.width = cv.height = TS;
           const g = cv.getContext('2d');
-          const base = g.createLinearGradient(0, 0, 512, 512);
-          base.addColorStop(0, '#b0101f'); base.addColorStop(0.5, '#d01c2c'); base.addColorStop(1, '#a50d1c');
-          g.fillStyle = base; g.fillRect(0, 0, 512, 512);
-          g.fillStyle = 'rgba(255,255,255,0.05)';                          // faint diagonal stripes in the paper
-          for (let i = -512; i < 512; i += 44) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 22, 0); g.lineTo(i + 22 + 512, 512); g.lineTo(i + 512, 512); g.fill(); }
-          g.strokeStyle = 'rgba(255,255,255,0.92)'; g.lineWidth = 4; g.lineCap = 'round';
+          g.fillStyle = '#c3172a'; g.fillRect(0, 0, TS, TS);
+          let ps = 11;
+          const pr = () => { ps = (ps * 16807) % 2147483647; return ps / 2147483647; };
+          for (let i = 0; i < 2600; i++) { g.fillStyle = pr() < 0.5 ? 'rgba(255,255,255,0.035)' : 'rgba(60,0,8,0.05)'; g.fillRect(pr() * TS, pr() * TS, 2, 2); }   // paper grain
+          const wrap = (fn, x, y, s) => { for (const dx of [-TS, 0, TS]) for (const dy of [-TS, 0, TS]) if (x + dx > -s && x + dx < TS + s && y + dy > -s && y + dy < TS + s) fn(x + dx, y + dy, s); };
           const flake = (x, y, s) => {
+            g.strokeStyle = '#fff6ee'; g.lineCap = 'round'; g.lineWidth = Math.max(3, s * 0.11);
             for (let k = 0; k < 6; k++) {
-              const a = k * Math.PI / 3, c = Math.cos(a), d = Math.sin(a);
+              const a = k * Math.PI / 3 + 0.26, c = Math.cos(a), d = Math.sin(a);
               g.beginPath(); g.moveTo(x, y); g.lineTo(x + c * s, y + d * s); g.stroke();
-              for (const f of [0.45, 0.72]) {                              // two pairs of barbs per arm
-                const bx = x + c * s * f, by = y + d * s * f, bl = s * (0.9 - f) * 0.7;
-                g.beginPath(); g.moveTo(bx, by); g.lineTo(bx + Math.cos(a + 0.7) * bl, by + Math.sin(a + 0.7) * bl);
-                g.moveTo(bx, by); g.lineTo(bx + Math.cos(a - 0.7) * bl, by + Math.sin(a - 0.7) * bl); g.stroke();
+              for (const f of [0.42, 0.7]) {                               // two pairs of barbs per arm
+                const bx = x + c * s * f, by = y + d * s * f, bl = s * (0.88 - f) * 0.75;
+                g.beginPath(); g.moveTo(bx, by); g.lineTo(bx + Math.cos(a + 0.75) * bl, by + Math.sin(a + 0.75) * bl);
+                g.moveTo(bx, by); g.lineTo(bx + Math.cos(a - 0.75) * bl, by + Math.sin(a - 0.75) * bl); g.stroke();
               }
             }
+            g.fillStyle = '#fff6ee'; g.beginPath(); g.arc(x, y, s * 0.12, 0, Math.PI * 2); g.fill();
           };
-          [[80, 88, 34], [300, 60, 22], [420, 240, 36], [180, 280, 26], [60, 420, 22], [340, 420, 30], [240, 180, 14], [460, 460, 16], [470, 70, 14], [150, 480, 12]].forEach(([x, y, s]) => flake(x, y, s));
-          g.fillStyle = 'rgba(255,214,90,0.95)';
-          [[200, 80], [120, 200], [400, 120], [280, 340], [140, 470], [480, 360], [40, 300], [360, 300]].forEach(([x, y]) => { g.beginPath(); g.arc(x, y, 5, 0, Math.PI * 2); g.fill(); });
+          const star = (x, y, s) => {
+            g.fillStyle = '#ffd36a'; g.beginPath();
+            for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? s * 0.42 : s; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+            g.closePath(); g.fill();
+          };
+          [[150, 170, 70], [560, 110, 48], [860, 330, 74], [360, 520, 56], [120, 820, 48], [700, 760, 66], [990, 900, 40], [520, 960, 30]].forEach(([x, y, s]) => wrap(flake, x, y, s));
+          [[380, 230, 16], [720, 470, 14], [250, 690, 13], [930, 600, 15], [80, 470, 12], [610, 600, 10], [880, 70, 12], [380, 880, 14]].forEach(([x, y, s]) => wrap(star, x, y, s));
           const tex = new THREE.CanvasTexture(cv);
-          tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(1.2, 1.2);
+          tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
           tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-          const paper = new THREE.MeshPhysicalMaterial({ map: tex, roughness: 0.42, metalness: 0, clearcoat: 0.35, clearcoatRoughness: 0.3, fog: false,
-            emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.16 });
+          const paper = new THREE.MeshPhysicalMaterial({ map: tex, roughness: 0.5, metalness: 0, clearcoat: 0.2, clearcoatRoughness: 0.45, fog: false,
+            emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.12 });
+          // a box whose paper is mapped by real size on every face: the pattern never squashes on the short sides
+          const paperBox = (w, h, d) => {
+            const geo = new THREE.BoxGeometry(w, h, d), uv = geo.attributes.uv;
+            const dims = [[d, h], [d, h], [w, d], [w, d], [w, h], [w, h]];   // +x -x +y -y +z -z
+            for (let i = 0; i < uv.count; i++) { const f = dims[Math.floor(i / 4)]; uv.setXY(i, uv.getX(i) * f[0] / S, uv.getY(i) * f[1] / S); }
+            return geo;
+          };
           const gold = new THREE.MeshPhysicalMaterial({ color: 0xe9b544, roughness: 0.34, metalness: 0.35, clearcoat: 0.3, fog: false, emissive: 0x5a3a08, emissiveIntensity: 0.25 });
           const inside = new THREE.MeshBasicMaterial({ color: 0x1c0707, fog: false });
           giftMats.push(paper, gold, inside);
           const add = (parent, geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); parent.add(m); return m; };
           const y0 = -S / 2;
-          add(gift, new THREE.BoxGeometry(S, HB, S), paper, 0, y0 + HB / 2, 0);
+          add(gift, paperBox(S, HB, S), paper, 0, y0 + HB / 2, 0);
           add(gift, new THREE.BoxGeometry(S * 1.01, HB * 1.005, S * 0.17), gold, 0, y0 + HB / 2, 0);
           add(gift, new THREE.BoxGeometry(S * 0.17, HB * 1.005, S * 1.01), gold, 0, y0 + HB / 2, 0);
           const hollow = add(gift, new THREE.PlaneGeometry(S * 0.9, S * 0.9), inside, 0, y0 + HB + 0.02, 0);   // the open top (dark inside)
           hollow.rotation.x = -Math.PI / 2;
           lid.position.set(0, y0 + HB + HL / 2 - S * 0.04, 0);
-          add(lid, new THREE.BoxGeometry(S * 1.08, HL, S * 1.08), paper, 0, 0, 0);
+          add(lid, paperBox(S * 1.08, HL, S * 1.08), paper, 0, 0, 0);
           add(lid, new THREE.BoxGeometry(S * 1.09, HL * 1.01, S * 0.18), gold, 0, 0, 0);
           add(lid, new THREE.BoxGeometry(S * 0.18, HL * 1.01, S * 1.09), gold, 0, 0, 0);
           gift.add(lid);
@@ -189,10 +202,22 @@ void main() {
         {
           const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; };
           const close = el('button', 'gn-x', '×'); close.type = 'button'; close.setAttribute('aria-label', 'Close the note');
+          const NS = 'http://www.w3.org/2000/svg';
+          const svgEl = (cls, viewBox, d) => { const v = document.createElementNS(NS, 'svg'); v.setAttribute('class', cls); v.setAttribute('viewBox', viewBox); v.setAttribute('aria-hidden', 'true'); const p = document.createElementNS(NS, 'path'); p.setAttribute('d', d); v.appendChild(p); return v; };
+          const EMAIL = 'arjun.haridasan.1999@gmail.com';
           const actions = el('div', 'gn-actions');
-          const mail = el('a', 'gn-btn', 'Email me'); mail.href = 'mailto:arjun.haridasan.1999@gmail.com';
-          actions.append(mail);
-          note.append(close, el('p', 'gn-hi', 'Dear recruiter,'), el('p', 'gn-big', 'Please hire me!'), el('p', 'gn-sig', '— Arjun H'), actions);
+          const mail = el('a', 'gn-btn'); mail.href = 'mailto:' + EMAIL;
+          mail.append(svgEl('gn-ico', '0 0 24 24', 'M3 6h18v12H3zM3 7l9 6 9-6'), document.createTextNode('Email me'));
+          const copy = el('button', 'gn-btn ghost', 'Copy address'); copy.type = 'button';
+          copy.addEventListener('click', () => {
+            const done = () => { copy.textContent = 'Copied!'; setTimeout(() => { copy.textContent = 'Copy address'; }, 1600); };
+            if (navigator.clipboard) navigator.clipboard.writeText(EMAIL).then(done, () => { copy.textContent = EMAIL; });
+            else copy.textContent = EMAIL;
+          });
+          actions.append(mail, copy);
+          const sig = el('p', 'gn-sig', '— Arjun H');
+          sig.appendChild(svgEl('gn-swoosh', '0 0 120 20', 'M4 14 C 30 4, 60 18, 88 8 S 114 6, 116 10'));   // an ink swoosh under the name
+          note.append(close, el('p', 'gn-hi', 'Dear recruiter,'), el('p', 'gn-big', 'Please hire me!'), sig, actions);
           close.addEventListener('click', () => closeBox());
           document.body.appendChild(note);
         }
@@ -264,10 +289,31 @@ void main() {
         };
         const swallowClick = (e) => { e.stopPropagation(); e.preventDefault(); };
         const eatNextClick = () => { window.addEventListener('click', swallowClick, { capture: true, once: true }); setTimeout(() => window.removeEventListener('click', swallowClick, true), 400); };
+        // a pull that ends before the gift pops is a failed try; from the 2nd one the moon asks for more
+        let fails = 0;
+        function moonSays(text) {
+          const b = document.createElement('div');
+          b.className = 'lv-moon-note'; b.textContent = text; b.setAttribute('role', 'status');
+          document.body.appendChild(b);
+          const ms = screenOf(moonRest), bw = b.offsetWidth, bh = b.offsetHeight;
+          const bx = Math.max(10, Math.min(window.innerWidth - bw - 10, ms.x - bw / 2));
+          b.style.left = bx + 'px'; b.style.top = Math.max(10, ms.y - bh - 34) + 'px';
+          b.style.setProperty('--tail', Math.max(14, Math.min(bw - 14, ms.x - bx)) + 'px');
+          b.animate([
+            { opacity: 0, transform: 'translateY(8px) scale(0.8) rotate(-3deg)' },
+            { opacity: 1, transform: 'translateY(0) scale(1.06) rotate(-3deg)', offset: 0.14 },
+            { opacity: 1, transform: 'translateY(0) scale(1) rotate(-3deg)', offset: 0.22 },
+            { opacity: 1, transform: 'translateY(0) scale(1) rotate(-3deg)', offset: 0.85 },
+            { opacity: 0, transform: 'translateY(-6px) scale(0.96) rotate(-3deg)' }
+          ], { duration: 2400, easing: 'ease-out', fill: 'forwards' }).onfinish = () => b.remove();
+        }
         function release() {
           st.pid = -1;
           if (st.gift === 'out') { st.mode = 'float'; st.anchor.copy(st.m); st.idleT = 0; }
-          else st.mode = 'return';
+          else {
+            st.mode = 'return';
+            if (st.m.length() > MOON_R * 2.5 && ++fails >= 2) setTimeout(() => moonSays(st.stretch > 0.05 || fails > 2 ? 'Pull harder!' : 'Pull harder… all the way!'), 450);
+          }
           eatNextClick();   // letting go is not a click on the wall
         }
         function openBox() {
@@ -316,6 +362,7 @@ void main() {
         window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeBox(); });
 
         function popGift(dir, D) {
+          fails = 0;
           st.gift = 'out'; st.ub = 'closed'; st.present = true;   // straight out of the hole it comes at the viewer, growing
           st.g.copy(dir).multiplyScalar(MOON_R * 0.4);
           st.gv.copy(dir).multiplyScalar(D * 0.9).add(t2.set(0, D * 0.35));   // flung out toward the moon, a little up

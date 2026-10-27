@@ -215,24 +215,26 @@
     showCard(held ? want : -1);
     if (active >= 0 && now - shownAt > 700) markSeen(active);
 
-    // labels: hidden until their stone is hovered, then the pill floats just above the stone
-    // (stem pointing down at it) and rides up with it
+    // labels: all five pills float just above their stones (stem pointing down) and ride up with them;
+    // the hovered one lights up and fills its ring, and once its card bursts out it steps aside
     for (let i = 0; i < N; i++) {
       const L = labels[i], r = S.rocks[i];
-      const on = i === want && !held && !!r && r.vis;
-      if (on !== L.classList.contains('show')) {
-        L.classList.toggle('show', on);
-        if (!on && i === want && held) { L.classList.add('pop'); setTimeout(() => L.classList.remove('pop'), 240); }
-      }
+      const vis = !!r && r.vis;
       // once the card bursts out, the pill stays as an invisible hover target so the pointer resting on
       // it keeps the card open (hiding it would end the hover and slam the card shut)
-      const ghost = i === want && held && !!r && r.vis;
+      const ghost = i === want && held && vis;
+      const on = vis && !ghost;
+      if (on !== L.classList.contains('show')) {
+        L.classList.toggle('show', on);
+        if (ghost) { L.classList.add('pop'); setTimeout(() => L.classList.remove('pop'), 240); }
+      }
       L.classList.toggle('ghost', ghost);
-      if ((!on && !ghost) || !r) continue;
+      L.classList.toggle('hot', on && i === want);
+      if (!vis) continue;
       const ls = sizeOf(L), lw = ls.w || 120, lh = ls.h || 54;
       const ay = r.y - Math.max(8, r.r * 0.85);
       L.style.transform = 'translate3d(' + Math.round(Math.max(8, Math.min(vw - lw - 8, r.x - lw / 2))) + 'px,' + Math.round(Math.max(uiTop(vw), ay - 4 - lh)) + 'px,0)';
-      L.style.setProperty('--p', prog.toFixed(3));
+      L.style.setProperty('--p', (i === want ? prog : 0).toFixed(3));
     }
 
     if (active < 0) return;

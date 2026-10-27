@@ -163,6 +163,12 @@ sub1("bloom.grade.uSat.value = gr.sat; bloom.grade.uContrast.value = gr.con;",
 # the camera tracks a dragging finger closely (the slow follow read as lag on phones), and still glides after release
 sub1("          const camK = 1 - Math.pow(1 - 0.08, wallDt * 60);   // normal follow (frame-rate independent)",
      "          const camK = 1 - Math.pow(1 - (isDragging ? (IS_TOUCH ? 0.3 : 0.16) : 0.08), wallDt * 60);   // tight while dragging, smooth glide after (frame-rate independent)")
+# Stone and Electric: the stones in front wear the letter blocks' own material (same texture, carving, glow)
+sub1("        desertRocks.children.forEach((m) => { m.material = name === 'fire' ? fireRockMat : rockMat; });",
+     "        desertRocks.children.forEach((m, k) => {\n"
+     "          const blockMat = (name === 'stone' || name === 'electric') && bricks.length ? bricks[(k * 7) % bricks.length].mesh.material : null;\n"
+     "          m.material = name === 'fire' ? fireRockMat : blockMat || rockMat;\n"
+     "        });")
 # phones: the five stones sit in the open lava in front of the big A (3 + 2, above the tracker), never behind its legs
 sub1("      const MOBILE_ROCK_SPOTS = [[-0.6, -0.44], [0.1, -0.48], [0.62, -0.42], [-0.32, -0.62], [0.4, -0.64]];",
      "      const MOBILE_ROCK_SPOTS = [[-0.58, -0.5], [0, -0.47], [0.58, -0.5], [-0.3, -0.7], [0.3, -0.7]];   // 3 + 2 in the open lava below the A\n"

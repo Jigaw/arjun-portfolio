@@ -67,7 +67,7 @@ html[data-theme]:not([data-theme="fire"]):not([data-theme="electric"]) .lv-brand
 .lv-pill i { font-style: normal; color: var(--lv-flame); }
 .lv-pill .dot { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--lv-flame); box-shadow: 0 0 10px rgba(255, 106, 26, 0.8);
   background: conic-gradient(var(--lv-gold) calc(var(--p, 0) * 1turn), transparent 0); }
-.lv-label:hover .lv-pill, .lv-label:focus-visible .lv-pill { border-color: var(--lv-line-2); transform: translateY(-3px); box-shadow: 0 0 26px rgba(255, 106, 26, 0.45); }
+.lv-label.hot .lv-pill, .lv-label:hover .lv-pill, .lv-label:focus-visible .lv-pill { border-color: var(--lv-line-2); transform: translateY(-3px); box-shadow: 0 0 26px rgba(255, 106, 26, 0.45); }
 .lv-label.seen .dot { background: var(--lv-gold); border-color: var(--lv-gold); animation: none; }
 .lv-label.seen .lv-pill { color: var(--lv-mute); }
 .lv-stem { width: 1px; height: 26px; background: linear-gradient(var(--lv-flame), rgba(255, 106, 26, 0)); }
@@ -259,27 +259,42 @@ html[data-theme]:not([data-theme="fire"]) .lv-back { opacity: 1; visibility: vis
 }
 
 /* the note inside the gift box: lined paper with a strip of tape, rises out of the box when it's unboxed */
-#gift-note { position: fixed; left: 0; top: 0; z-index: 35; width: min(560px, 92vw); padding: clamp(22px, 4vw, 34px) clamp(20px, 4vw, 36px) clamp(18px, 3vw, 28px); border-radius: 6px;
-  color: #3a2a1a; font-family: 'Caveat', 'Segoe Print', cursive;
-  background: repeating-linear-gradient(transparent 0 35px, rgba(110, 150, 215, 0.28) 35px 36px), #fffaf0;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45), 0 2px 0 rgba(0, 0, 0, 0.06);
+#gift-note { --rule: 34px; position: fixed; left: 0; top: 0; z-index: 35; width: min(560px, 92vw); padding: calc(var(--rule) * 1.25) clamp(18px, 4vw, 34px) calc(var(--rule) * 0.75) clamp(58px, 11vw, 74px); border-radius: 4px;
+  color: #33261b; font-family: 'Caveat', 'Segoe Print', cursive;
+  /* notebook paper: a red margin line, blue rules the writing sits on, a warm paper tone */
+  background:
+    linear-gradient(90deg, transparent clamp(44px, 8.6vw, 58px), rgba(214, 58, 68, 0.55) clamp(44px, 8.6vw, 58px) calc(clamp(44px, 8.6vw, 58px) + 2px), transparent calc(clamp(44px, 8.6vw, 58px) + 2px)),
+    repeating-linear-gradient(transparent 0 calc(var(--rule) - 1px), rgba(100, 140, 205, 0.32) calc(var(--rule) - 1px) var(--rule)),
+    radial-gradient(120% 90% at 30% 20%, #fffdf6, #fbf3e2);
+  box-shadow: 0 22px 46px rgba(0, 0, 0, 0.45), 0 3px 8px rgba(0, 0, 0, 0.18);
   transform: translate(var(--x, -999px), var(--y, -999px)) translateY(36px) scale(0.55) rotate(-6deg); opacity: 0; pointer-events: none;
   transition: transform 0.5s cubic-bezier(0.2, 1.45, 0.4, 1), opacity 0.25s; }
 #gift-note.on { opacity: 1; pointer-events: auto; transform: translate(var(--x), var(--y)) rotate(-2deg); }
-#gift-note::before { content: ''; position: absolute; top: -13px; left: 50%; width: 110px; height: 28px; transform: translateX(-50%) rotate(-3deg); background: rgba(255, 214, 90, 0.78); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15); }
+/* a strip of tape with torn ends */
+#gift-note::before { content: ''; position: absolute; top: -14px; left: 50%; width: 120px; height: 30px; transform: translateX(-50%) rotate(-3deg); background: rgba(255, 216, 100, 0.8);
+  clip-path: polygon(0 8%, 4% 0, 8% 10%, 12% 2%, 88% 0, 92% 9%, 96% 1%, 100% 7%, 100% 93%, 96% 100%, 92% 91%, 88% 99%, 12% 100%, 8% 90%, 4% 99%, 0 92%); }
 #gift-note p { margin: 0; }
-.gn-hi { font-size: clamp(24px, 5vw, 34px); }
-.gn-big { font-size: clamp(46px, 12vw, 84px); font-weight: 700; line-height: 0.95; margin: 8px 0 6px !important; color: #c41e2a; }
-.gn-sig { font-size: clamp(24px, 5vw, 32px); text-align: right; margin-bottom: clamp(14px, 3vw, 22px) !important; }
-.gn-actions { display: flex; justify-content: center; }
-.gn-actions .gn-btn { flex: 0 1 260px; }
-.gn-btn { flex: 1; text-align: center; padding: 14px 12px; border-radius: 999px; font: 600 clamp(14px, 3.6vw, 17px)/1.2 'Inter', system-ui, sans-serif; text-decoration: none; color: #fff;
-  background: linear-gradient(135deg, #e2343f, #a3121d); box-shadow: 0 4px 14px rgba(196, 30, 42, 0.35); transition: transform 0.15s; }
-.gn-btn:hover { transform: translateY(-1px); }
-.gn-btn.ghost { color: #8a1c14; background: transparent; border: 1.5px solid rgba(196, 30, 42, 0.5); box-shadow: none; }
+/* every line of writing sits on a rule */
+.gn-hi { font-size: 30px; line-height: var(--rule); }
+.gn-big { font-size: clamp(46px, 11.5vw, 76px); font-weight: 700; line-height: calc(var(--rule) * 2); color: #c41e2a; white-space: nowrap; clip-path: inset(-10% 100% -10% 0); }
+.gn-sig { position: relative; width: max-content; margin: 0 6px 0 auto !important; font-size: 30px; line-height: var(--rule); clip-path: inset(-20% 100% -40% 0); }
+.gn-swoosh { position: absolute; left: 18%; right: -4%; bottom: -10px; width: 90%; height: 16px; fill: none; stroke: #c41e2a; stroke-width: 2.4; stroke-linecap: round; stroke-dasharray: 140; stroke-dashoffset: 140; }
+#gift-note.on .gn-big { animation: gn-write 0.9s 0.35s cubic-bezier(0.45, 0, 0.3, 1) forwards; }
+#gift-note.on .gn-sig { animation: gn-write 0.45s 1.25s ease-out forwards; }
+#gift-note.on .gn-swoosh { animation: gn-draw 0.45s 1.6s ease-out forwards; }
+@keyframes gn-write { to { clip-path: inset(-10% -2% -40% 0); } }
+@keyframes gn-draw { to { stroke-dashoffset: 0; } }
+.gn-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: calc(var(--rule) * 0.6); }
+.gn-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; border-radius: 999px; font: 600 clamp(14px, 3.6vw, 16px)/1.2 'Inter', system-ui, sans-serif; text-decoration: none; color: #fff; cursor: pointer;
+  background: linear-gradient(135deg, #e2343f, #a3121d); border: 0; box-shadow: 0 6px 16px rgba(196, 30, 42, 0.35); transition: transform 0.15s, box-shadow 0.2s; }
+.gn-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(196, 30, 42, 0.45); }
+.gn-btn.ghost { color: #8a1c14; background: rgba(255, 255, 255, 0.6); border: 1.5px solid rgba(196, 30, 42, 0.45); box-shadow: none; }
+.gn-ico { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 .gn-x { position: absolute; top: 6px; right: 8px; width: 40px; height: 40px; border: 0; border-radius: 50%; background: none; color: #7a5a40; font: 400 24px/1 system-ui, sans-serif; cursor: pointer; }
 .gn-x:hover { background: rgba(122, 90, 64, 0.1); }
 #gift-note :focus-visible { outline: 2px solid #c41e2a; outline-offset: 2px; }
+@media (max-width: 480px) { #gift-note { --rule: 30px; } .gn-hi, .gn-sig { font-size: 26px; } .gn-btn { flex: 1 1 auto; padding: 12px 14px; } }
+@media (prefers-reduced-motion: reduce) { #gift-note .gn-big, #gift-note .gn-sig { clip-path: none; animation: none; } #gift-note .gn-swoosh { stroke-dashoffset: 0; animation: none; } }
 @media (prefers-reduced-motion: reduce) { #gift-note { transition: opacity 0.2s; } }
 
 /* while the gift is up the CV stones stand down */

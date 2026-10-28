@@ -4,115 +4,114 @@
 <meta charset="UTF-8">
 <title>Arjun H · CV</title>
 <!-- Source of Arjun_H_CV.pdf. Render: see README ("Updating the CV"). -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Syne:wght@800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@800&display=swap" rel="stylesheet">
 <style>
   @page { size: A4; margin: 0; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { width: 210mm; height: 297mm; overflow: hidden; }
-  body { font: 400 9pt/1.42 'Inter', system-ui, sans-serif; color: #2b211c; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .mono { font-family: 'JetBrains Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; }
+  body { font: 400 9pt/1.45 'Inter', system-ui, sans-serif; color: #2a2522; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  :root { --acc: #d9480f; --ink: #1a1512; --mute: #6f6560; --line: #ece4de; --tint: #faf6f3; }
 
-  header { position: relative; padding: 12mm 15mm 7.5mm; color: #fff2e6; overflow: hidden;
-    background: radial-gradient(120% 140% at 85% 0%, #5a1d0c 0%, #2a0e06 45%, #120604 100%); }
-  header::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2.2mm; background: linear-gradient(90deg, #ff4d1c, #ff9a3d 55%, #ffc872); }
-  header .glow { position: absolute; right: -18mm; top: -22mm; width: 90mm; height: 90mm; border-radius: 50%; background: radial-gradient(circle, rgba(255,140,50,0.35), rgba(255,90,20,0) 65%); }
-  h1 { font: 800 30pt/1 'Syne', 'Inter', sans-serif; letter-spacing: -0.02em; }
-  .role { margin-top: 2.2mm; font-size: 9pt; color: #ffc872; }
-  .summary { margin-top: 3.4mm; max-width: 150mm; font-size: 9.6pt; line-height: 1.55; color: #f3dccb; }
-  .contact { margin-top: 4mm; display: flex; gap: 7mm; font-size: 8.8pt; }
-  .contact a, .contact span { color: #fff2e6; text-decoration: none; }
-  .contact b { color: #ff9a3d; font-weight: 600; margin-right: 1.6mm; }
+  /* header: name, role, one line of contact, a short summary */
+  header { padding: 14mm 16mm 7mm; border-top: 2.2mm solid var(--acc); }
+  h1 { font: 800 28pt/1 'Syne', 'Inter', sans-serif; letter-spacing: -0.02em; color: var(--ink); }
+  .role { margin-top: 2.4mm; font-size: 10.5pt; font-weight: 600; color: var(--acc); }
+  .contact { margin-top: 2mm; display: flex; gap: 6mm; font-size: 8.8pt; color: var(--mute); }
+  .summary { margin-top: 4.5mm; max-width: 172mm; font-size: 9.4pt; line-height: 1.6; color: #3d3632; }
 
-  main { display: grid; grid-template-columns: 1fr 64mm; gap: 8mm; padding: 7.5mm 15mm 0; }
-  h2 { display: flex; align-items: center; gap: 2.4mm; margin: 0 0 3.4mm; font: 600 8.6pt/1 'JetBrains Mono', monospace; letter-spacing: 0.14em; text-transform: uppercase; color: #c2410c; }
-  h2::before { content: ''; width: 2.4mm; height: 2.4mm; border-radius: 0.6mm; transform: rotate(45deg); background: linear-gradient(135deg, #ff4d1c, #ffc872); }
-  h2::after { content: ''; flex: 1; height: 0.3mm; background: linear-gradient(90deg, rgba(194,65,12,0.45), rgba(194,65,12,0)); }
-  section + section { margin-top: 5.4mm; }
+  /* two columns: experience and titles on the left, everything else in a light sidebar */
+  main { display: grid; grid-template-columns: 1fr 60mm; gap: 9mm; padding: 2mm 16mm 0; }
+  h2 { margin: 0 0 3mm; padding-bottom: 1.6mm; border-bottom: 0.35mm solid var(--line); font-size: 8.4pt; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--acc); }
+  section + section { margin-top: 6mm; }
 
-  .job { position: relative; padding-left: 5.5mm; }
-  .job + .job { margin-top: 3mm; }
-  .job::before { content: ''; position: absolute; left: 0.9mm; top: 1.6mm; width: 2mm; height: 2mm; border-radius: 50%; background: #ff9a3d; box-shadow: 0 0 0 0.7mm rgba(255,154,61,0.22); }
-  .job.now::before { background: #ff4d1c; box-shadow: 0 0 0 0.9mm rgba(255,77,28,0.25); }
-  .job:not(:last-child)::after { content: ''; position: absolute; left: 1.8mm; top: 4.6mm; bottom: -3.6mm; width: 0.3mm; background: rgba(194,65,12,0.25); }
+  .job + .job { margin-top: 3.6mm; }
   .jh { display: flex; justify-content: space-between; align-items: baseline; gap: 4mm; }
-  .jh b { font-size: 10.4pt; font-weight: 700; color: #1d1410; }
-  .jh b span { font-weight: 500; color: #6b5a50; }
-  .when { font-size: 7.6pt; color: #9a4a1c; white-space: nowrap; }
-  ul { margin-top: 1.6mm; padding-left: 3.6mm; }
-  li { margin: 0.45mm 0; }
-  li::marker { color: #ff7a2e; }
+  .jh b { font-size: 10.2pt; font-weight: 700; color: var(--ink); }
+  .jh b span { font-weight: 500; color: var(--mute); }
+  .when { font-size: 8.2pt; font-weight: 500; color: var(--mute); white-space: nowrap; }
+  ul { margin-top: 1.4mm; padding-left: 4mm; }
+  li { margin: 0.5mm 0; }
+  li::marker { color: var(--acc); }
 
-  .proj { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; }
-  .card { padding: 2.4mm 3mm; border-radius: 2mm; background: #fff7f0; border: 0.3mm solid #f6d9c3; }
-  .card b { display: block; font-size: 9.8pt; color: #1d1410; }
-  .card i { display: block; font-style: normal; font-size: 7.4pt; color: #9a4a1c; margin: 0.4mm 0 1.2mm; }
-  .card p { font-size: 8.4pt; line-height: 1.4; color: #4a3a31; }
+  .studio + .studio { margin-top: 3.4mm; }
+  .studio > small { display: block; margin-bottom: 1.6mm; font-size: 8pt; font-weight: 600; color: var(--mute); }
+  .titles { border: 0.3mm solid var(--line); border-radius: 1.6mm; }
+  .t { display: flex; justify-content: space-between; align-items: baseline; gap: 4mm; padding: 1.7mm 3mm; }
+  .t + .t { border-top: 0.3mm solid var(--line); }
+  .t b { font-size: 9.2pt; font-weight: 600; color: var(--ink); white-space: nowrap; }
+  .t span { font-size: 8pt; color: var(--mute); white-space: nowrap; }
 
-  aside .grp + .grp { margin-top: 2.8mm; }
-  .grp small { display: block; margin-bottom: 1.6mm; font-size: 7.2pt; color: #8a6a58; }
-  .chips { display: flex; flex-wrap: wrap; gap: 1.4mm; }
-  .chips span { padding: 0.9mm 2.4mm; border-radius: 10mm; font-size: 8pt; line-height: 1.3; color: #3a2a20; background: #fff1e6; border: 0.3mm solid #f3cfb2; }
-  .edu + .edu { margin-top: 2.6mm; }
-  .edu b { display: block; font-size: 9.2pt; color: #1d1410; }
-  .edu span { font-size: 8.2pt; color: #6b5a50; }
-  .langs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.6mm 3mm; font-size: 8.8pt; }
-  .langs div::before { content: '•'; color: #ff7a2e; margin-right: 1.6mm; }
+  aside { padding: 0 0 0 6mm; border-left: 0.35mm solid var(--line); }
+  .grp + .grp { margin-top: 2.6mm; }
+  .grp small { display: block; margin-bottom: 1.2mm; font-size: 7.8pt; font-weight: 600; color: var(--ink); }
+  .grp p { font-size: 8.4pt; line-height: 1.5; color: #4a423d; }
+  .edu + .edu { margin-top: 2.4mm; }
+  .edu b { display: block; font-size: 8.9pt; color: var(--ink); }
+  .edu span { display: block; font-size: 8.1pt; color: var(--mute); }
+  .langs { font-size: 8.6pt; line-height: 1.6; color: #4a423d; }
+  .grp p i, .langs i { font-style: normal; white-space: nowrap; }
+  .grp p i:not(:last-child)::after, .langs i:not(:last-child)::after { content: ' ·'; color: #b8aca4; }
 
-  footer { position: absolute; left: 15mm; right: 15mm; bottom: 7mm; display: flex; justify-content: space-between; font-size: 7.4pt; color: #a08a7c; }
-  footer a { color: #c2410c; text-decoration: none; }
+  footer { position: absolute; left: 16mm; right: 16mm; bottom: 8mm; padding-top: 2.4mm; border-top: 0.35mm solid var(--line); display: flex; justify-content: space-between; font-size: 7.6pt; color: #9a908a; }
 </style>
 </head>
 <body>
 <header>
-  <div class="glow"></div>
   <h1>Arjun H</h1>
-  <div class="role mono">QA · Game Testing &nbsp;—&nbsp; Kwalee</div>
-  <p class="summary">A passionate gamer and dedicated test engineer: functional and compliance testing across PC, PlayStation and Xbox, from trainee to senior and team lead on Gen 8 platforms. Strong on problem-solving, clear bug reports, teamwork and continuous learning.</p>
-  <div class="contact">
-    <span><b class="mono">Email</b>arjun.haridasan.1999@gmail.com</span>
-    <span><b class="mono">Based</b>Bangalore, India</span>
-  </div>
+  <div class="role">QA · Game Testing — Kwalee</div>
+  <div class="contact"><span>arjun.haridasan.1999@gmail.com</span><span>Bangalore, India</span></div>
+  <p class="summary">Game tester with four years across functional, regression and compliance testing on PC, PlayStation, Xbox and Nintendo Switch. Grew from trainee to senior test engineer leading a team of 24, and now in QA at Kwalee. Known for clear, actionable bug reports, careful triage and keeping a team moving.</p>
 </header>
 
 <main>
   <div>
     <section>
       <h2>Experience</h2>
-      <div class="job now">
-        <div class="jh"><b>Kwalee <span>· QA</span></b><span class="when mono">Mar 2026 – Present</span></div>
+      <div class="job">
+        <div class="jh"><b>Kwalee <span>· QA</span></b><span class="when">Mar 2026 – Present</span></div>
       </div>
       <div class="job">
-        <div class="jh"><b>Side <span>· Senior Test Engineer</span></b><span class="when mono">Mar 2025 – Mar 2026</span></div>
+        <div class="jh"><b>Side <span>· Senior Test Engineer</span></b><span class="when">Mar 2025 – Mar 2026</span></div>
         <ul>
-          <li>Handled a team of 24 testers on Gen 8 platforms; assigned tasks by bug-finding strengths and mentored juniors through to completion.</li>
-          <li>Reviewed bugs and attachments daily and kept P0–P3 issues current; assisted the team lead with the Daily Status Report.</li>
-          <li>Wrote client-facing documents with clear, actionable feedback.</li>
+          <li>Led a team of 24 testers on Gen 8 platforms, assigning work to each tester's strengths and mentoring juniors.</li>
+          <li>Reviewed bugs and attachments daily, kept P0–P3 priorities current and helped the team lead with the daily status report.</li>
+          <li>Wrote client-facing reports with clear, actionable feedback.</li>
         </ul>
       </div>
       <div class="job">
-        <div class="jh"><b>PTW <span>· Test Engineer</span></b><span class="when mono">Mar 2024 – Mar 2025</span></div>
+        <div class="jh"><b>PTW <span>· Test Engineer</span></b><span class="when">Mar 2024 – Mar 2025</span></div>
         <ul>
-          <li>Created 400+ test cases covering every area of functionality and executed them; reported 1000+ bugs with design references.</li>
-          <li>Functionality, regression, smoke, sanity, ad-hoc and re-testing on PC, Gen 9 (PS5 / XSX / XSS) and Gen 8 (PS4 / XB1).</li>
-          <li>PC-guideline checks and basic compliance test cases (TRC / XR).</li>
+          <li>Wrote and ran 400+ test cases covering every area of functionality; reported 1,000+ bugs with design references.</li>
+          <li>Functionality, regression, smoke, sanity, ad-hoc and re-testing on PC, Gen 9 (PS5, Xbox Series X|S) and Gen 8 (PS4, Xbox One).</li>
+          <li>PC-guideline checks and compliance test cases (TRC / XR).</li>
         </ul>
       </div>
       <div class="job">
-        <div class="jh"><b>PTW <span>· Trainee Test Engineer</span></b><span class="when mono">Jul 2022 – Mar 2024</span></div>
+        <div class="jh"><b>PTW <span>· Trainee Test Engineer</span></b><span class="when">Jul 2022 – Mar 2024</span></div>
         <ul>
-          <li>Started as a compliance game tester for Sony: documented offline compliance checks for 100+ applications on PS4 and PS5.</li>
-          <li>Prioritised and reported bugs by game stage; shared game knowledge with new joiners.</li>
+          <li>Compliance testing for Sony: documented offline compliance checks for 100+ applications on PS4 and PS5.</li>
+          <li>Prioritised and reported bugs by game stage, and shared game knowledge with new joiners.</li>
         </ul>
       </div>
     </section>
 
     <section>
       <h2>Titles I've tested</h2>
-      <div class="proj">
-        <div class="card"><b>Jacket</b><i class="mono">Action-adventure · PC · Xbox · PS</i><p>Functionality testing on PC, Xbox and PlayStation; compliance on PS4 / PS5.</p></div>
-        <div class="card"><b>NYX</b><i class="mono">3D platformer · co-op · PC · PS</i><p>Functionality testing; assigned tasks and maintained the bug database.</p></div>
-        <div class="card"><b>Clove</b><i class="mono">Base-building card game · PC</i><p>Functionality and requirements testing; task assignment and database.</p></div>
-        <div class="card"><b>Philotes</b><i class="mono">3D platformer · co-op · Steam · Winstore</i><p>Functionality testing across Steam and the Windows Store.</p></div>
+      <div class="studio">
+        <small>Kwalee</small>
+        <div class="titles">
+          <div class="t"><b>Welcome to Elderfield</b><span>Cozy horror RPG · PC</span></div>
+          <div class="t"><b>Luna Abyss</b><span>Action FPS · PC, PS, Xbox</span></div>
+          <div class="t"><b>Call of the Elder Gods</b><span>Narrative puzzle · PC, PS, Xbox, Switch</span></div>
+        </div>
+      </div>
+      <div class="studio">
+        <small>Side (formerly PTW)</small>
+        <div class="titles">
+          <div class="t"><b>Unknown 9: Awakening</b><span>Action-adventure · PC, PS, Xbox</span></div>
+          <div class="t"><b>Little Nightmares III</b><span>Co-op horror puzzle · PC, PS, Xbox, Switch</span></div>
+          <div class="t"><b>Corsair Cove</b><span>City-builder strategy · PC</span></div>
+        </div>
       </div>
     </section>
   </div>
@@ -120,23 +119,24 @@
   <aside>
     <section>
       <h2>Skills</h2>
-      <div class="grp"><small class="mono">Testing</small><div class="chips"><span>Manual</span><span>Game testing</span><span>Functionality</span><span>Regression</span><span>Smoke</span><span>Sanity</span><span>Ad-hoc</span><span>Re-testing</span><span>Compliance TRC / XR</span></div></div>
-      <div class="grp"><small class="mono">Process</small><div class="chips"><span>SDLC</span><span>STLC</span><span>Test suites</span><span>Bug tracking</span><span>P0–P3 triage</span></div></div>
-      <div class="grp"><small class="mono">People</small><div class="chips"><span>Team management</span><span>Task management</span><span>Communication</span><span>Adaptability</span><span>Problem-solving</span></div></div>
+      <div class="grp"><small>Game testing</small><p><i>Manual</i> <i>Functionality</i> <i>Regression</i> <i>Smoke</i> <i>Sanity</i> <i>Ad-hoc</i> <i>Re-testing</i> <i>Compliance (TRC / XR)</i></p></div>
+      <div class="grp"><small>Process</small><p><i>SDLC</i> <i>STLC</i> <i>Test suites</i> <i>Bug tracking</i> <i>Bug triage</i></p></div>
+      <div class="grp"><small>People</small><p><i>Team management</i> <i>Task management</i> <i>Communication</i> <i>Adaptability</i> <i>Problem-solving</i></p></div>
     </section>
     <section>
       <h2>Tools</h2>
-      <div class="chips"><span>Jira</span><span>TestRail</span><span>Selenium · Java</span><span>n8n</span><span>GitHub</span><span>Hugging Face</span><span>ComfyUI</span><span>DaVinci Resolve</span><span>Canva</span><span>Affinity</span><span>MS Office · Teams</span></div>
+      <div class="grp"><small>QA &amp; dev</small><p><i>Jira</i> <i>TestRail</i> <i>Selenium</i> <i>Java</i> <i>n8n</i> <i>GitHub</i> <i>Hugging Face</i> <i>MS Office</i> <i>Teams</i></p></div>
+      <div class="grp"><small>Creative &amp; AI</small><p><i>ChatGPT</i> <i>Claude</i> <i>Gemini</i> <i>ComfyUI</i> <i>Blender</i> <i>DaVinci Resolve</i> <i>Canva</i> <i>Affinity</i></p></div>
     </section>
     <section>
       <h2>Education</h2>
-      <div class="edu"><b>B.E. · New Horizon College of Engineering</b><span>2017 – 2021 · 8 CGPA</span></div>
-      <div class="edu"><b>HSC · Narayana PU College</b><span>2015 – 2017 · 80%</span></div>
-      <div class="edu"><b>SSLC · Sadhguru Sainath International School</b><span>2008 – 2015 · 8 CGPA</span></div>
+      <div class="edu"><b>B.E.</b><span>New Horizon College of Engineering · 2017–2021 · 8 CGPA</span></div>
+      <div class="edu"><b>Higher Secondary (HSC)</b><span>Narayana PU College · 2015–2017 · 80%</span></div>
+      <div class="edu"><b>SSLC</b><span>Sadhguru Sainath International School · 2008–2015 · 8 CGPA</span></div>
     </section>
     <section>
       <h2>Languages</h2>
-      <div class="langs"><div>English</div><div>Malayalam</div><div>Kannada</div><div>Tamil</div><div>Telugu</div><div>Hindi</div></div>
+      <p class="langs"><i>English</i> <i>Malayalam</i> <i>Kannada</i> <i>Tamil</i> <i>Telugu</i> <i>Hindi</i></p>
     </section>
   </aside>
 </main>

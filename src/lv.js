@@ -346,24 +346,42 @@
     return b;
   }
   // the chosen group is the big centre circle with its skills in a ring around it; under it, a row of all five
-  // (hover / tap one to open it). Hovering the centre circle and moving left steps to the group on the left
-  // (right: the right), round and round; on touch, a swipe across it does the same.
+  // (hover / tap one to open it). Hover the centre and sweep left or right: the icon leans with the pointer, the
+  // arrow on that side lights up, and past the threshold the next group swipes in from that side while the ring
+  // of skills spins round to it (round and round). On touch, a swipe across the centre does the same.
   let skillIdx = 0;
-  function openOrbit(g, force) {
+  const SWIPE = 34;                                                  // px of sideways travel for one step
+  function openOrbit(g, force, dir) {
     if (!skillsBox || (orbitFor === g && !force)) return;
+    const from = orbitFor ? SKILL_GROUPS.indexOf(orbitFor) : -1;
     orbitFor = g; skillIdx = SKILL_GROUPS.indexOf(g);
+    if (dir == null && from >= 0 && !force) {                        // a pick from the row: spin the short way round
+      const n = SKILL_GROUPS.length; let d = (skillIdx - from + n) % n; if (d > n / 2) d -= n; dir = d < 0 ? -1 : 1;
+    }
     const strip = skillsBox.querySelector('.lv-strip'), box = skillsBox.querySelector('.lv-orbit');
     const sw = strip.clientWidth || 320, n = SKILL_GROUPS.length, gap = Math.min(54, sw / 6.5);
     strip.querySelectorAll('.lv-hub').forEach((x, k) => {
       x.classList.toggle('on', k === skillIdx);
       x.style.left = (sw / 2 + (k - (n - 1) / 2) * gap) + 'px';
     });
-    box.querySelectorAll('.lv-orb').forEach((o) => o.remove());
-    const core = box.querySelector('.lv-orbit-core'); core.textContent = '';
-    core.append(svgIcon(g.icon, 'lv-core-ico', true)); core.setAttribute('aria-label', g.name);
     const title = document.getElementById('lv-skill-title'); if (title) title.textContent = g.name;   // the card's heading names the chosen group
+    // the centre icon: the old one slides out the way you swept, the new one slides in from the other side
+    const core = box.querySelector('.lv-orbit-core'); core.setAttribute('aria-label', g.name);
+    const ico = svgIcon(g.icon, 'lv-core-ico', true);
+    const oldIco = core.querySelector('.lv-core-ico');
+    const anim = !reduce && dir && oldIco && oldIco.animate;
+    if (anim) {
+      const o = oldIco; o.classList.add('leaving');
+      o.animate([{ transform: 'translateX(0)', opacity: 1 }, { transform: 'translateX(' + (-dir * 34) + 'px)', opacity: 0 }], { duration: 200, easing: 'ease-in', fill: 'forwards' }).onfinish = () => o.remove();
+      ico.animate([{ transform: 'translateX(' + (dir * 34) + 'px) scale(0.7)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 340, delay: 60, easing: 'cubic-bezier(0.2, 1.4, 0.4, 1)', fill: 'backwards' });
+    } else core.querySelectorAll('.lv-core-ico').forEach((x) => x.remove());
+    core.appendChild(ico);
+    // the ring of skills: built in its own layer so a step can spin the old ring out and the new one in
+    const oldRing = box.querySelector('.lv-ring:not(.leaving)');
+    const ring = el('div', 'lv-ring');
     const nodes = g.logos ? g.logos.map(logoBadge) : g.items.map((x) => el('span', 'lv-orb chip', x));
-    nodes.forEach((o) => box.appendChild(o));
+    nodes.forEach((o) => ring.appendChild(o));
+    box.appendChild(ring);
     const w = box.clientWidth || 320, h = box.clientHeight || 280, hx = w / 2, hy = h / 2;
     let hh = 0;
     const half = nodes.map((o) => { hh = Math.max(hh, o.offsetHeight / 2); return o.offsetWidth / 2; });
@@ -376,9 +394,20 @@
       o.style.setProperty('--i', String(i));
     });
     box.style.setProperty('--rx', rx + 'px'); box.style.setProperty('--ry', ry + 'px');
-    box.classList.remove('pop'); void box.offsetWidth; box.classList.add('pop');   // replay the pop-out
+    if (anim && oldRing) {
+      // a step: the old ring spins away and fades, the new one spins in from the other side (no pop from the middle)
+      box.classList.remove('pop');                                   // (the pop-from-the-middle is only for the first open)
+      oldRing.classList.add('leaving');
+      oldRing.animate([{ transform: 'rotate(0deg) scale(1)', opacity: 1 }, { transform: 'rotate(' + (-dir * 40) + 'deg) scale(0.86)', opacity: 0 }], { duration: 240, easing: 'ease-in', fill: 'forwards' }).onfinish = () => oldRing.remove();
+      ring.classList.add('placed');
+      ring.animate([{ transform: 'rotate(' + (dir * 50) + 'deg) scale(0.86)', opacity: 0 }, { transform: 'rotate(0deg) scale(1)', opacity: 1 }], { duration: 460, delay: 80, easing: 'cubic-bezier(0.2, 1.25, 0.35, 1)', fill: 'backwards' });
+    } else {
+      box.querySelectorAll('.lv-ring').forEach((r) => { if (r !== ring) r.remove(); });
+      box.classList.remove('pop'); void box.offsetWidth; box.classList.add('pop');   // first open: everything pops out of the centre
+      ring.classList.add('placed');
+    }
   }
-  const stepSkill = (d) => openOrbit(SKILL_GROUPS[(skillIdx + d + SKILL_GROUPS.length) % SKILL_GROUPS.length]);
+  const stepSkill = (d) => openOrbit(SKILL_GROUPS[(skillIdx + d + SKILL_GROUPS.length) % SKILL_GROUPS.length], false, d);
   if (skillsBox) {
     const strip = el('div', 'lv-strip');
     strip.setAttribute('role', 'tablist'); strip.setAttribute('aria-label', 'Skill groups');
@@ -391,19 +420,26 @@
       strip.appendChild(b);
     });
     const box = el('div', 'lv-orbit'), core = el('div', 'lv-orbit-core');
-    box.appendChild(core);
-    // the centre circle: every ~30 px of sideways travel over it is one step that way
-    let lastX = null, sx = null;
-    core.addEventListener('pointermove', (e) => {
+    // a steady hover zone a little bigger than the circle (the circle itself animates, the zone never moves)
+    const zone = el('div', 'lv-orbit-zone'); zone.setAttribute('aria-hidden', 'true');
+    box.append(core, zone);
+    let baseX = null, sx = null;
+    const lean = (dx) => {
+      const k = Math.max(-1, Math.min(1, dx / SWIPE));
+      core.style.setProperty('--pull', k.toFixed(3));                // the icon leans, the arrow on that side lights up
+    };
+    zone.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') { baseX = e.clientX; core.classList.add('hot'); lean(0); } });
+    zone.addEventListener('pointermove', (e) => {
       if (e.pointerType !== 'mouse') return;
-      if (lastX == null) { lastX = e.clientX; return; }
-      const d = e.clientX - lastX;
-      if (Math.abs(d) >= 30) { stepSkill(d < 0 ? -1 : 1); lastX = e.clientX; }
+      if (baseX == null) { baseX = e.clientX; core.classList.add('hot'); }
+      const dx = e.clientX - baseX;
+      if (Math.abs(dx) >= SWIPE) { stepSkill(dx < 0 ? -1 : 1); baseX = e.clientX; lean(0); }
+      else lean(dx);
     });
-    core.addEventListener('pointerleave', () => { lastX = null; });
-    // touch: a swipe across it (finger left = the group on the left); a plain tap steps right
-    core.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') sx = e.clientX; });
-    core.addEventListener('pointerup', (e) => {
+    zone.addEventListener('pointerleave', () => { baseX = null; core.classList.remove('hot'); lean(0); });
+    // touch: a swipe across the centre (finger left = the group on the left); a plain tap steps right
+    zone.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') sx = e.clientX; });
+    zone.addEventListener('pointerup', (e) => {
       if (sx == null) return;
       const dx = e.clientX - sx; sx = null;
       stepSkill(Math.abs(dx) > 24 && dx < 0 ? -1 : 1);

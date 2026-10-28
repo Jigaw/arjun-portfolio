@@ -404,18 +404,12 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
   border-radius: 50%; border: 1px dashed rgba(255, 150, 70, 0.28); transition: width 0.4s var(--lv-ease), height 0.4s var(--lv-ease); }
 .lv-orbit-core { z-index: 1; cursor: ew-resize; touch-action: pan-y; position: absolute; left: 50%; top: 50%; width: 92px; height: 92px; transform: translate(-50%, -50%); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; text-align: center;
   background: linear-gradient(135deg, var(--lv-gold), var(--lv-flame)); box-shadow: 0 0 34px rgba(255, 106, 26, 0.55); }
-/* little arrows either side of the centre circle: slide across it to step through the groups */
-.lv-orbit-core::before, .lv-orbit-core::after { content: ''; position: absolute; top: 50%; width: 7px; height: 7px; border: solid var(--lv-gold); border-width: 2px 2px 0 0; opacity: 0.55; transition: opacity 0.2s, transform 0.2s; }
-.lv-orbit-core::before { left: -15px; transform: translateY(-50%) rotate(-135deg); }
-.lv-orbit-core::after { right: -15px; transform: translateY(-50%) rotate(45deg); }
-.lv-orbit-core:hover::before { opacity: 1; transform: translate(-3px, -50%) rotate(-135deg); }
-.lv-orbit-core:hover::after { opacity: 1; transform: translate(3px, -50%) rotate(45deg); }
 .lv-orbit-core b { font-size: 11px; line-height: 1.15; color: var(--lv-ink); max-width: 78px; }
 .lv-core-ico { width: 34px; height: 34px; color: var(--lv-ink); }
 .lv-orbit.pop .lv-orbit-core { animation: lv-core-pop 0.4s var(--lv-ease); }
 @keyframes lv-core-pop { from { transform: translate(-50%, -50%) scale(0.8); } }
 .lv-orb { position: absolute; z-index: 2; left: 50%; top: 50%; opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
-.lv-orbit.pop .lv-orb { left: var(--x); top: var(--y); opacity: 1; transform: translate(-50%, -50%) scale(1);
+.lv-ring.placed .lv-orb, .lv-orbit.pop .lv-orb { left: var(--x); top: var(--y); opacity: 1; transform: translate(-50%, -50%) scale(1);
   transition: left 0.5s cubic-bezier(0.2, 1.4, 0.4, 1), top 0.5s cubic-bezier(0.2, 1.4, 0.4, 1), transform 0.5s cubic-bezier(0.2, 1.4, 0.4, 1), opacity 0.25s; transition-delay: calc(var(--i, 0) * 35ms); }
 .lv-orb.chip { padding: 6px 11px; border-radius: 999px; font-size: 12px; white-space: nowrap; color: var(--lv-text); background: rgba(30, 14, 6, 0.95); border: 1px solid var(--lv-line); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); }
 .lv-orb.chip:hover { border-color: var(--lv-flame); color: var(--lv-gold); }
@@ -435,7 +429,7 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
   .lv-orb-svg { width: 20px; height: 20px; }
   .lv-orbit-core { width: 80px; height: 80px; }
 }
-@media (prefers-reduced-motion: reduce) { .lv-orbit.pop .lv-orb, .lv-hub { transition: opacity 0.2s; } }
+@media (prefers-reduced-motion: reduce) { .lv-orbit.pop .lv-orb, .lv-ring.placed .lv-orb, .lv-hub { transition: opacity 0.2s; } }
 
 /* phones: the Steam pop-up sits over the Projects card, so the card softens behind it too */
 body.lv-steam-on.lv-steam-over .lv-card.on { filter: blur(3px) brightness(0.6); transition: filter 0.3s; }
@@ -528,3 +522,19 @@ body.lv-steam-on .lv-label { opacity: 0 !important; pointer-events: none !import
 /* Projects card beside its Steam panel in a narrower window: one column, scrolls if it must */
 .lv-card.wide.compact { width: 380px; }
 .lv-card.wide.compact .lv-scroll { column-count: 1; max-height: calc(100vh - 220px); overflow-y: auto; }
+
+/* ---------- the centre circle's swipe: rings in their own layers, a steady hover zone, the icon leans with the pointer ---------- */
+.lv-ring { position: absolute; inset: 0; transform-origin: 50% 50%; pointer-events: none; }
+.lv-ring .lv-orb { pointer-events: auto; }
+.lv-ring.placed .lv-orb { transition: none; }
+.lv-orbit.pop .lv-ring.placed .lv-orb { transition: left 0.5s cubic-bezier(0.2, 1.4, 0.4, 1), top 0.5s cubic-bezier(0.2, 1.4, 0.4, 1), transform 0.5s cubic-bezier(0.2, 1.4, 0.4, 1), opacity 0.25s; transition-delay: calc(var(--i, 0) * 35ms); }
+.lv-orbit-zone { position: absolute; left: 50%; top: 50%; width: 170px; height: 130px; transform: translate(-50%, -50%); border-radius: 50%; z-index: 2; cursor: ew-resize; touch-action: pan-y; }
+.lv-orbit-core { pointer-events: none; transition: transform 0.35s cubic-bezier(0.2, 1.4, 0.4, 1), box-shadow 0.3s; }
+.lv-orbit-core.hot { transform: translate(-50%, -50%) scale(1.06); box-shadow: 0 0 44px rgba(255, 106, 26, 0.7); }
+.lv-orbit-core .lv-core-ico { position: absolute; left: 50%; top: 50%; margin: -17px 0 0 -17px; translate: calc(var(--pull, 0) * 12px) 0; transition: translate 0.18s ease-out; }
+.lv-orbit-core::before, .lv-orbit-core::after { content: ''; position: absolute; top: 50%; width: 8px; height: 8px; border: solid var(--lv-gold); border-width: 2.5px 2.5px 0 0; opacity: 0.5;
+  transition: opacity 0.15s, transform 0.15s; }
+.lv-orbit-core::before { left: -17px; transform: translateY(-50%) rotate(-135deg) scale(calc(1 + max(0, -1 * var(--pull, 0)) * 0.6)); opacity: calc(0.45 + max(0, -1 * var(--pull, 0)) * 0.55); }
+.lv-orbit-core::after { right: -17px; transform: translateY(-50%) rotate(45deg) scale(calc(1 + max(0, var(--pull, 0)) * 0.6)); opacity: calc(0.45 + max(0, var(--pull, 0)) * 0.55); }
+@media (max-width: 700px) { .lv-orbit-zone { width: 140px; height: 110px; } .lv-orbit-core .lv-core-ico { margin: -15px 0 0 -15px; width: 30px; height: 30px; } }
+.lv-card.lv-skills h3 { text-align: center; padding-left: 38px; padding-right: 38px; }   /* the group name centred over its circle */

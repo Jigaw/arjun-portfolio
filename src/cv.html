@@ -9,6 +9,12 @@
   @page { size: A4; margin: 0; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { width: 210mm; height: 297mm; overflow: hidden; }
+  body { position: relative; }                 /* the footer belongs to the A4 page, not the window */
+  /* on screen: the page as an A4 sheet in the middle of a grey desk (print is unaffected) */
+  @media screen {
+    html { width: auto; height: auto; overflow: auto; background: #d9d4d0; }
+    body { margin: 10mm auto; box-shadow: 0 2mm 10mm rgba(0, 0, 0, 0.18); }
+  }
   body { font: 400 9pt/1.45 'Inter', system-ui, sans-serif; color: #2a2522; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   :root { --acc: #d9480f; --ink: #1a1512; --mute: #6f6560; --line: #ece4de; --tint: #faf6f3; }
 

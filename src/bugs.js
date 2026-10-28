@@ -2,7 +2,7 @@
   'use strict';
   // "Bugs" button: a small form (name + what went wrong) that drops a row into the "Arjuns Portfolio bugs"
   // Google Sheet through its Apps Script web app (tools/bug-sheet.gs). Plain text only; the script caps lengths.
-  const BUG_URL = '';   // the Apps Script web app URL (…/exec) once it is deployed
+  const BUG_URL = 'https://script.google.com/macros/s/AKfycbw45hA5r7UeMsmpWtkTBSQC1EFNXTzfvWtHmP6vcrEtwjsqpWNSSP2OmOrbIQVpx3hu/exec';   // the Apps Script web app behind the bugs sheet
   const btn = document.getElementById('lv-bug');
   if (!btn) return;
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; };

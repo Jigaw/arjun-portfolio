@@ -94,10 +94,11 @@ html[data-theme]:not([data-theme="fire"]):not([data-theme="electric"]) .lv-brand
 .lv-card.on .in { animation: lv-burst 0.5s cubic-bezier(0.2, 1.35, 0.4, 1) both; }
 .lv-card.on .rv { animation: lv-line 0.6s var(--lv-ease) both; animation-delay: calc(0.12s + var(--d, 0) * 0.06s); }
 .lv-card.out { visibility: visible; opacity: 1; }
-.lv-card.out .in { animation: lv-evap 0.14s ease-in both; }
+.lv-card.out .in { animation: lv-evap 0.34s cubic-bezier(0.5, 0, 0.75, 0.4) both; }
 /* rises out of the steam: opacity + transform only, so it stays on the GPU's cheap path */
 @keyframes lv-burst { 0% { opacity: 0; transform: translateY(16px) scale(0.3); } 55% { opacity: 1; } 100% { opacity: 1; transform: none; } }
-@keyframes lv-evap { to { opacity: 0; transform: translateY(-14px) scale(0.97); } }
+/* closing: the card sinks back down to its stone, squeezing and motion-blurring as it goes */
+@keyframes lv-evap { 0% { filter: blur(0); } 60% { opacity: 0.85; } to { opacity: 0; transform: translateY(70px) scale(0.42, 0.3); filter: blur(7px); } }
 @keyframes lv-line { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes lv-rise { from { opacity: 0; transform: translateY(12px); } }
 .lv-card .k { display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: var(--lv-flame); }
@@ -437,7 +438,7 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
 @media (prefers-reduced-motion: reduce) { .lv-orbit.pop .lv-orb, .lv-hub { transition: opacity 0.2s; } }
 
 /* phones: the Steam pop-up sits over the Projects card, so the card softens behind it too */
-@media (max-width: 700px) { body.lv-steam-on .lv-card.on { filter: blur(3px) brightness(0.6); transition: filter 0.3s; } }
+body.lv-steam-on.lv-steam-over .lv-card.on { filter: blur(3px) brightness(0.6); transition: filter 0.3s; }
 
 /* the card's close cross: only where there's no hover (touch screens) or on phones */
 .lv-close { position: absolute; top: 10px; right: 10px; z-index: 4; width: 32px; height: 32px; display: none; place-items: center; padding: 0; border-radius: 50%; cursor: pointer;
@@ -465,13 +466,13 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
 .lv-gauge { position: relative; flex: none; align-self: center; width: 34px; height: 34px; padding: 0; border-radius: 50%; cursor: pointer; overflow: hidden; color: var(--lv-gold);
   background: rgba(255, 150, 70, 0.08); border: 1px solid var(--lv-line-2) !important; transition: width 0.35s var(--lv-ease), height 0.35s var(--lv-ease), border-radius 0.35s var(--lv-ease), background 0.3s; }
 .lv-gauge .pc { position: absolute; inset: 0; display: grid; place-items: center; font: 700 14px/1 'Inter', sans-serif; transition: opacity 0.2s, transform 0.3s; }
-.lv-gauge svg { position: absolute; left: 50%; top: 5px; width: 56px; height: 32px; transform: translateX(-50%); opacity: 0; transition: opacity 0.25s 0.1s; }
+.lv-gauge svg { position: absolute; left: 50%; top: 5px; width: 56px; height: 32px; transform: translateX(-50%); opacity: 0; transition: opacity 0.08s; }
 .lv-gauge .trk, .lv-gauge .val { fill: none; stroke-width: 5; stroke-linecap: round; }
 .lv-gauge .trk { stroke: rgba(255, 150, 70, 0.18); }
 .lv-gauge .val { stroke: var(--lv-flame); stroke-dasharray: 100; stroke-dashoffset: 100; transition: stroke-dashoffset 0.25s; }
 .lv-gauge .ndl { stroke: var(--lv-text); stroke-width: 2; stroke-linecap: round; transform-origin: 30px 30px; transform: rotate(-90deg); transition: transform 0.2s; }
 .lv-gauge .hub { fill: var(--lv-gold); }
-.lv-gauge b { position: absolute; left: 0; right: 0; bottom: 4px; font: 700 9.5px/1 'JetBrains Mono', monospace !important; color: var(--lv-gold); text-align: center; opacity: 0; transition: opacity 0.25s 0.5s; }
+.lv-gauge b { position: absolute; left: 0; right: 0; bottom: 4px; font: 700 9.5px/1 'JetBrains Mono', monospace !important; color: var(--lv-gold); text-align: center; opacity: 0; transition: opacity 0.08s; }
 .lv-row:hover .lv-gauge, .lv-gauge:focus-visible, .lv-row.gauge-on .lv-gauge { width: 70px; height: 54px; border-radius: 14px; background: rgba(255, 150, 70, 0.12); }
 .lv-row:hover .lv-gauge .pc, .lv-gauge:focus-visible .pc, .lv-row.gauge-on .lv-gauge .pc { opacity: 0; transform: scale(0.5); }
 .lv-row:hover .lv-gauge svg, .lv-gauge:focus-visible svg, .lv-row.gauge-on .lv-gauge svg,
@@ -480,3 +481,47 @@ html[data-gift-up] #mini-ui { opacity: 0 !important; visibility: hidden; pointer
 .lv-row:hover .lv-gauge .ndl, .lv-gauge:focus-visible .ndl, .lv-row.gauge-on .lv-gauge .ndl { transform: rotate(calc(-90deg + var(--v) * 180deg)); transition: transform 1.2s cubic-bezier(0.3, 1.45, 0.5, 1) 0.2s; }
 .lv-row:hover .lv-gauge .val, .lv-gauge:focus-visible .val, .lv-row.gauge-on .lv-gauge .val { stroke-dashoffset: calc(100 - var(--v) * 100); transition: stroke-dashoffset 1s cubic-bezier(0.3, 0.9, 0.4, 1) 0.2s; }
 @media (prefers-reduced-motion: reduce) { .lv-gauge .ndl, .lv-gauge .val { transition: none !important; } }
+
+/* loading safety net (src/watchdog.js): a calm lava backdrop and a note when the 3D scene can't start */
+html.pf-fail body { background: radial-gradient(120% 80% at 50% 110%, #ff6a1a 0%, #8a2a08 35%, #1a0904 75%) fixed; }
+#pf-note { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -60%); z-index: 60; width: min(360px, calc(100vw - 32px)); padding: 20px 20px 18px; border-radius: 16px; text-align: center;
+  color: #f6e7d8; background: rgba(22, 9, 4, 0.92); border: 1px solid rgba(255, 150, 70, 0.3); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); font: 14px/1.45 'Inter', system-ui, sans-serif; }
+#pf-note p { margin: 0 0 4px; font-weight: 600; }
+#pf-note small { display: block; color: rgba(246, 231, 216, 0.65); }
+#pf-note div { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
+#pf-note button, #pf-note a { padding: 9px 16px; border-radius: 999px; font: 600 13px/1 'Inter', system-ui, sans-serif; cursor: pointer; text-decoration: none; }
+#pf-note button { color: #1a0904; background: linear-gradient(135deg, #ffc872, #ff6a1a); border: 0; }
+#pf-note a { color: #ffc872; border: 1px solid rgba(255, 150, 70, 0.4); }
+html.pf-fail #mini-ui, html.pf-fail #btn-audio { display: none !important; }
+/* gauge: the dial and score fade in after the badge has opened, and vanish at once when it closes */
+.lv-row:hover .lv-gauge svg, .lv-gauge:focus-visible svg, .lv-row.gauge-on .lv-gauge svg { transition: opacity 0.25s 0.15s; }
+.lv-row:hover .lv-gauge b, .lv-gauge:focus-visible b, .lv-row.gauge-on .lv-gauge b { transition: opacity 0.25s 0.45s; }
+
+/* the moon's own note (src/moon.js): fades in by the moon, bumps when its words change */
+.lv-moon-hint { transform: rotate(-3deg) scale(0.85); transition: opacity 0.3s, transform 0.35s cubic-bezier(0.2, 1.5, 0.4, 1); }
+.lv-moon-hint.on { opacity: 1; transform: rotate(-3deg) scale(1); }
+.lv-moon-hint.on.bump { animation: lv-hint-bump 0.35s cubic-bezier(0.2, 1.6, 0.4, 1); }
+@keyframes lv-hint-bump { from { transform: rotate(-3deg) scale(1.18); } }
+body.lv-steam-over .lv-steam-x { display: block; }   /* the pop-up over the card can always be closed */
+body.lv-steam-over .lv-label { opacity: 0 !important; pointer-events: none !important; }
+
+/* ---------- Bugs form ---------- */
+.lv-bugs { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 16px; background: rgba(8, 3, 1, 0.55); opacity: 0; visibility: hidden; transition: opacity 0.25s, visibility 0s 0.25s;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.lv-bugs.on { opacity: 1; visibility: visible; transition: opacity 0.25s; }
+.lv-bugs-box { position: relative; width: min(400px, 100%); padding: 22px 20px 18px; border-radius: 18px; color: var(--lv-text); background: rgba(22, 9, 4, 0.96); border: 1px solid var(--lv-line-2);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55); transform: translateY(12px) scale(0.97); transition: transform 0.3s var(--lv-ease); font: 14px/1.45 'Inter', system-ui, sans-serif; }
+.lv-bugs.on .lv-bugs-box { transform: none; }
+.lv-bugs-box h3 { margin: 0 0 4px; font: 800 22px/1.1 'Syne', 'Inter', sans-serif; color: var(--lv-flame); }
+.lv-bugs-box > p { margin: 0 0 14px; color: var(--lv-mute); font-size: 13px; }
+.lv-bugs-box label { display: block; margin-bottom: 12px; font-size: 12px; font-weight: 600; color: var(--lv-gold); }
+.lv-bugs-box input, .lv-bugs-box textarea { display: block; width: 100%; box-sizing: border-box; margin-top: 6px; padding: 10px 12px; border-radius: 10px; font: 14px/1.4 'Inter', system-ui, sans-serif;
+  color: var(--lv-text); background: rgba(0, 0, 0, 0.35); border: 1px solid var(--lv-line); outline: none; resize: vertical; }
+.lv-bugs-box input:focus, .lv-bugs-box textarea:focus { border-color: var(--lv-flame); box-shadow: 0 0 0 3px rgba(255, 106, 26, 0.2); }
+.lv-bugs-trap { position: absolute !important; left: -9999px; width: 1px !important; height: 1px; opacity: 0; }
+.lv-bugs-send { width: 100%; padding: 11px; border: 0; border-radius: 999px; cursor: pointer; font: 700 14px/1 'Inter', system-ui, sans-serif; color: #1a0904; background: linear-gradient(135deg, var(--lv-gold), var(--lv-flame)); }
+.lv-bugs-send:disabled { opacity: 0.6; cursor: default; }
+.lv-bugs-x { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font: 400 22px/1 system-ui, sans-serif; color: var(--lv-text); background: rgba(0, 0, 0, 0.35); border: 1px solid var(--lv-line); }
+.lv-bugs-status { margin: 10px 0 0; min-height: 1.2em; font-size: 12.5px; text-align: center; color: var(--lv-mute); }
+.lv-bugs-status.ok { color: #7bd88f; }
+.lv-bugs-status.err { color: #ff8a7a; }

@@ -11,7 +11,7 @@
           ub: 'closed', ubT: 0,    // unboxing: closed | opening | open | closing
           m: new THREE.Vector2(), mv: new THREE.Vector2(), anchor: new THREE.Vector2(),   // moon (sky-plane units around the hole)
           g: new THREE.Vector2(), gv: new THREE.Vector2(),                               // gift (when out)
-          gRot: 0, gSpin: 0, gScale: 1, idleT: 0, sqT: 0, present: false, nk: 0, nkv: 0, boxK: 1,   // nk: 0 = on the sky, 1 = up close to the viewer
+          gRot: 0, gSpin: 0, gScale: 1, idleT: 0, sqT: 0, present: false, nk: 0, nkv: 0, boxK: 1, fallY: 0, fallV: 0, fade: 0,   // fallY/V: the box dropping away; fade: the gift's world easing back to the scene   // nk: 0 = on the sky, 1 = up close to the viewer
           px: 0, py: 0, pid: -1, stretch: 0, wobT: 9, wobA: 0, gulpT: 9, time: 0
         };
         const HR = 0.9;   // hole radius in moon radii (the moon covers it at rest)
@@ -237,12 +237,74 @@ void main() {
         const sMat = new THREE.ShaderMaterial({
           uniforms: { uColor: { value: new THREE.Color(1.5, 1.5, 1.6) }, uAlpha: { value: 0 } },
           vertexShader: 'attribute float aSide; attribute float aT; varying float vSide; varying float vT; void main() { vSide = aSide; vT = aT; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-          fragmentShader: 'uniform vec3 uColor; uniform float uAlpha; varying float vSide; varying float vT; void main() { float x = vSide; float core = exp(-x * x * 18.0); float halo = exp(-x * x * 3.0) * 0.35; gl_FragColor = vec4(uColor * (core * 1.4 + halo), (core + halo) * uAlpha * smoothstep(0.0, 0.04, vT) * smoothstep(1.0, 0.96, vT)); }',
+          fragmentShader: 'uniform vec3 uColor; uniform float uAlpha; varying float vSide; varying float vT; void main() { float x = vSide; float core = exp(-x * x * 22.0); float halo = exp(-x * x * 2.2) * 0.7; gl_FragColor = vec4(uColor * (core * 1.6 + halo), (core + halo * 0.8) * uAlpha * smoothstep(0.0, 0.04, vT) * smoothstep(1.0, 0.96, vT)); }',
           transparent: true, depthWrite: false, fog: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide
         });
         const string = new THREE.Mesh(sGeo, sMat);
         string.frustumCulled = false; string.renderOrder = -1.5; string.visible = false;
         scene.add(string);
+        // the rope is a real (verlet) rope in the sky plane: it swings, whips when the moon is yanked, and the
+        // pointer can flick it; both ends stay pinned (hole or moon, moon or gift)
+        const rope = { p: [], q: [], init: false, push: null, last: null };
+        for (let i = 0; i <= SEG; i++) { rope.p.push(new THREE.Vector2()); rope.q.push(new THREE.Vector2()); }
+        const ra = new THREE.Vector2(), rb = new THREE.Vector2(), rd = new THREE.Vector2();
+        function simRope(a, b, len, dt, D) {
+          const P = rope.p, Q = rope.q;
+          if (!rope.init) { for (let i = 0; i <= SEG; i++) { P[i].copy(a).lerp(b, i / SEG); Q[i].copy(P[i]); } rope.init = true; }
+          const h = Math.min(dt, 1 / 30), g = D * 1.1 * h * h;
+          for (let i = 1; i < SEG; i++) {
+            const vx = (P[i].x - Q[i].x) * 0.986, vy = (P[i].y - Q[i].y) * 0.986;
+            Q[i].copy(P[i]); P[i].x += vx; P[i].y += vy - g;
+          }
+          if (rope.push) {                                                   // a flick from the pointer sweeping across it
+            const rad = MOON_R * 1.6;
+            for (let i = 1; i < SEG; i++) { const d = P[i].distanceTo(rope.push.at); if (d < rad) P[i].addScaledVector(rope.push.dv, (1 - d / rad) * 0.7); }
+            rope.push = null;
+          }
+          const seg = len / SEG;
+          for (let k = 0; k < 18; k++) {
+            P[0].copy(a); P[SEG].copy(b);
+            for (let i = 0; i < SEG; i++) {
+              const A = P[i], B = P[i + 1];
+              rd.copy(B).sub(A); const d = rd.length();
+              if (d < 1e-6) continue;
+              const f = (d - seg) / d;
+              if (i === 0) B.addScaledVector(rd, -f);
+              else if (i + 1 === SEG) A.addScaledVector(rd, f);
+              else { A.addScaledVector(rd, f * 0.5); B.addScaledVector(rd, -f * 0.5); }
+            }
+          }
+          P[0].copy(a); P[SEG].copy(b);
+        }
+        // a soft glow around the moon (drawn just behind it, in the moon's own colour)
+        const haloMat = new THREE.ShaderMaterial({
+          uniforms: { uColor: { value: new THREE.Color(1, 1, 1) }, uA: { value: 0 }, uTime: { value: 0 } },
+          vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+          fragmentShader: 'uniform vec3 uColor; uniform float uA; uniform float uTime; varying vec2 vUv; void main() { float r = length(vUv - 0.5) * 2.0; float k = exp(-r * r * 7.0) * 1.1 + exp(-r * 3.4) * 0.5; k *= 0.92 + 0.08 * sin(uTime * 1.7); gl_FragColor = vec4(uColor * k, k * uA * smoothstep(1.0, 0.7, r)); }',
+          transparent: true, depthWrite: false, fog: false, blending: THREE.AdditiveBlending
+        });
+        const halo = new THREE.Mesh(new THREE.PlaneGeometry(MOON_R * 10, MOON_R * 10), haloMat);
+        halo.renderOrder = -1.2; halo.frustumCulled = false;
+        scene.add(halo);
+        const MOON_BIG = 1.65;                                               // a little bigger than the scene's own moon
+        // the pointer sweeping across the rope gives it a flick (sky-plane units)
+        const flickAt = new THREE.Vector2();
+        window.addEventListener('pointermove', (e) => {
+          if (!string.visible || st.mode === 'drag') { rope.last = null; return; }
+          ndc.set((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
+          ray.setFromCamera(ndc, camera);
+          const D = camera.position.distanceTo(moonRest);
+          w.copy(ray.ray.origin).addScaledVector(ray.ray.direction, D).sub(moonRest);
+          flickAt.set(w.dot(R), w.dot(U));
+          if (rope.last) rope.push = { at: flickAt.clone(), dv: flickAt.clone().sub(rope.last) };
+          rope.last = (rope.last || new THREE.Vector2()).copy(flickAt);
+        }, { passive: true });
+
+        // the moon's note: after a while on the scene it asks to be pulled; while pulled it asks for more
+        const hint = document.createElement('div');
+        hint.className = 'lv-moon-note lv-moon-hint'; hint.setAttribute('role', 'status');
+        document.body.appendChild(hint);
+        let hintIdle = 0, hintSeen = false;
 
         // ---- sky-plane basis around the hole (world units at the moon's distance) ----
         const R = new THREE.Vector3(), U = new THREE.Vector3(), v = new THREE.Vector3(), w = new THREE.Vector3();
@@ -314,7 +376,6 @@ void main() {
           if (st.gift === 'out') { st.mode = 'float'; st.anchor.copy(st.m); st.idleT = 0; }
           else {
             st.mode = 'return';
-            if (st.m.length() > MOON_R * 2.5 && ++fails >= 2) setTimeout(() => moonSays(st.stretch > 0.05 || fails > 2 ? 'Pull harder!' : 'Pull harder… all the way!'), 450);
           }
           eatNextClick();   // letting go is not a click on the wall
         }
@@ -326,22 +387,23 @@ void main() {
         // a tap outside the note: straight back to the A, front on (no closing animation)
         function backToA() {
           note.classList.remove('on');
-          st.mode = 'rest'; st.gift = 'in'; st.ub = 'closed'; st.present = false; st.nk = 0; st.nkv = 0; st.boxK = 1;
+          if (st.gift === 'in' && st.ub === 'closed') return;
+          st.fade = 1;                                                     // the Christmas evening eases back into the scene
+          st.mode = 'rest'; st.gift = 'in'; st.ub = 'closed'; st.present = false; st.nk = 0; st.nkv = 0; st.boxK = 1; st.fallY = 0; st.fallV = 0;
           st.m.set(0, 0); st.mv.set(0, 0); st.g.set(0, 0); st.gv.set(0, 0); st.stretch = 0; st.wobA = 0; st.idleT = 0;
           st.bowGone = st.lidOff = st.burst = st.lidBack = false;
           if (lid.parent !== gift) gift.add(lid);
           lid.position.copy(lidHome); lid.rotation.set(0, 0, 0); lid.visible = true;
           bow.scale.setScalar(1); bow.position.y = HL / 2; bow.rotation.z = 0; gift.userData.hollow.visible = false;
           confetti.forEach((c) => { c.m.visible = false; });
-          fitFullWordInView();                                         // the front view of the word, snapped
-          camSpherical.radius = camSpherical.targetRadius; camSpherical.theta = camSpherical.targetTheta; camSpherical.phi = camSpherical.targetPhi;
+          fitFullWordInView();                                         // the front view of the word: the camera glides there
           renderer.domElement.style.cursor = '';
+          // a motion-blurred sweep while the view settles (skipped for reduced motion)
+          if (!matchMedia('(prefers-reduced-motion: reduce)').matches && renderer.domElement.animate) {
+            renderer.domElement.animate([{ filter: 'blur(9px) brightness(1.12)' }, { filter: 'blur(3px)', offset: 0.45 }, { filter: 'blur(0px)' }], { duration: 750, easing: 'cubic-bezier(0.2, 0.7, 0.3, 1)' });
+          }
         }
-        function closeBox() {
-          if (st.ub !== 'open') return;
-          st.ub = 'closing'; st.ubT = 0;
-          note.classList.remove('on');
-        }
+        function closeBox() { if (st.ub === 'open' || st.ub === 'opening') backToA(); }
         // capture phase on the container: grabs on the moon or taps on the gift never reach the camera orbit
         container.addEventListener('pointerdown', (e) => {
           if (hitGift(e.clientX, e.clientY)) { e.stopPropagation(); initAudio(); eatNextClick(); openBox(); return; }
@@ -479,10 +541,10 @@ void main() {
             }
             if (t >= 0.5 && !st.burst) { st.burst = true; burstConfetti(); sound('tada'); }
             if (t >= 0.65 && !note.classList.contains('on')) note.classList.add('on');
-            if (t >= 0.8) st.boxK = Math.max(0, st.boxK - dt / 0.35);   // the note is out: the box drops away
+            if (t >= 0.8) st.boxK = 0;                                     // the note is out: the box falls away
             if (t >= 1.0) st.ub = 'open';
           } else if (st.ub === 'open') {
-            st.boxK = Math.max(0, st.boxK - dt / 0.35);                   // keeps dropping until it is gone
+            st.boxK = 0;
           } else if (st.ub === 'closing') {
             // the note sinks back in, the lid drops back on with a bounce, the bow pops back
             st.boxK = Math.min(1, st.boxK + dt / 0.3);                    // the box rises back up to catch the note
@@ -532,8 +594,37 @@ void main() {
             string.renderOrder = moonPull.busy ? 9 : -1.5;
           }
           st.gulpT += dt;
-          moon.scale.setScalar(1 - 0.18 * Math.sin(Math.PI * Math.min(1, st.gulpT / 0.45)));
+          moon.scale.setScalar(MOON_BIG * (1 - 0.18 * Math.sin(Math.PI * Math.min(1, st.gulpT / 0.45))));
           st.wobT += dt;
+          halo.visible = on;
+          if (on) {
+            halo.position.copy(moon.position); halo.quaternion.copy(camera.quaternion); halo.scale.copy(moon.scale);
+            haloMat.depthTest = moonMat.depthTest; halo.renderOrder = moonPull.busy ? 9.5 : -1.2;
+            haloMat.uniforms.uColor.value.copy(moonMat.uniforms.uColor.value);
+            haloMat.uniforms.uA.value = moonMat.uniforms.uAlpha.value * 1.25; haloMat.uniforms.uTime.value = st.time;
+          }
+          {
+            const P = window.__pfScene || {};
+            const calm = on && window.__arjunIntroDone && st.gift === 'in' && st.ub === 'closed' && !P.giftUp && !(P.hold >= 0) && (!P.theme || P.theme === 'fire');
+            if (calm && st.mode !== 'drag') hintIdle += dt;
+            if (st.gift !== 'in') { hintIdle = 0; hintSeen = false; }
+            const pulling = calm && st.mode === 'drag';
+            const show = pulling || calm && hintIdle > 7.5;
+            if (show) hintSeen = true;
+            const txt = pulling ? 'Pull harder!' : 'Try pulling me!';
+            if (hint.textContent !== txt) { hint.textContent = txt; hint.classList.remove('bump'); void hint.offsetWidth; hint.classList.add('bump'); }
+            hint.classList.toggle('on', show);
+            if (show) {
+              const s = screenRadius(moon.position, MOON_R * moon.scale.x);
+              const bw = hint.offsetWidth, bh = hint.offsetHeight;
+              const bx = Math.max(10, Math.min(window.innerWidth - bw - 10, s.c.x - bw / 2));
+              const below = s.c.y - s.r - bh - 16 < 64;                        // no room above (phones): under the moon
+              hint.classList.toggle('below', below);
+              hint.style.left = bx + 'px'; hint.style.top = (below ? s.c.y + s.r + 16 : s.c.y - s.r - bh - 16) + 'px';
+              hint.style.setProperty('--tail', Math.max(14, Math.min(bw - 14, s.c.x - bx)) + 'px');
+            }
+            P.moonHint = hintSeen;
+          }
           const L = D * 0.16, mlen = st.m.length();
           hole.visible = on;
           if (on) {
@@ -561,21 +652,23 @@ void main() {
           {
             const a = Math.max(0, Math.min(1, (st.nk - 0.15) / 0.75)), ea = a * a * (3 - 2 * a);
             const bu = backdropMat.uniforms;
-            bu.uK.value = ea;
-            backdrop.visible = on && ea > 0.002;
+            if (st.fade > 0) st.fade = Math.max(0, st.fade - dt / 0.7);
+            const ef = st.fade * st.fade * (3 - 2 * st.fade);
+            bu.uK.value = Math.max(ea, ef);
+            backdrop.visible = on && bu.uK.value > 0.002;
             if (backdrop.visible) {
               const dB = 30, hB = 2 * dB * Math.tan(camera.fov * Math.PI / 360);
               backdrop.position.copy(camera.position).addScaledVector(fwd, dB); backdrop.quaternion.copy(camera.quaternion);
               backdrop.scale.set(hB * camera.aspect, hB, 1);
               const uvOf = (p, out) => { v.copy(p).project(camera); return out.set(v.x * 0.5 + 0.5, v.y * 0.5 + 0.5); };
               uvOf(moonRest, bu.uHole.value);
-              if (gift.visible) uvOf(gift.position, bu.uPull.value);
+              if (gift.visible && st.fallY < S * 0.05) uvOf(gift.position, bu.uPull.value);   // (not once the box is falling away)
               bu.uAspect.value = camera.aspect;
               const sk = (THEMES[currentTheme] || THEMES.fire).sky;           // the current theme's own sky colours
               bu.uSky0.value.set(sk[0]); bu.uSky1.value.set(sk[1]); bu.uSky2.value.set(sk[2]);
             }
             // the CV stones stand down while the gift is up (a tap on the box must not open a stone's card)
-            const up = on && st.gift !== 'in' && st.nk > 0.02;
+            const up = on && (st.gift !== 'in' && st.nk > 0.02 || st.fade > 0.25);   // (and until the scene has mostly faded back)
             window.__pfScene = window.__pfScene || { hold: -1, rocks: [], pop: [] };
             { const ms = screenOf(moonRest); window.__pfScene.moonAt = { x: ms.x, y: ms.y, ok: on && ms.ok && !moonPull.busy }; }   // for the "pull the moon" hint
             (window.__pfScene = window.__pfScene || { hold: -1, rocks: [], pop: [] }).giftUp = up;
@@ -595,13 +688,16 @@ void main() {
             gift.rotateX(0.24); gift.rotateY(-0.5 + (1 - Math.min(1, k)) * Math.PI * 1.4 * (st.present ? 1 : -1));   // three-quarter view; tumbles in flight
             const sq = st.gift === 'squeeze' ? 1 + st.stretch * 0.6 : 1;   // squashed thin while squeezing through
             gift.scale.set(st.gScale / sq * (2 - fx.squash), st.gScale * sq * fx.squash, st.gScale);
-            const eb = st.boxK * st.boxK * (3 - 2 * st.boxK);
-            if (eb < 1) { gift.position.addScaledVector(U, -(1 - eb) * S * 2.6); gift.scale.multiplyScalar(0.6 + 0.4 * eb); }
-            if (st.boxK <= 0.01) gift.visible = false;
+            if (st.boxK < 1) {
+              if (st.fallY < dNear * tn * 1.3) { st.fallV += S * 26 * dt; st.fallY += st.fallV * dt; }   // gravity: slow at first, then gone (and it stops there)
+              gift.position.addScaledVector(U, -st.fallY);
+              gift.rotateZ(-st.fallY / S * 0.12); gift.rotateX(st.fallY / S * 0.05);
+              if (st.fallY > dNear * tn * 1.3) gift.visible = false;           // well below the bottom of the screen
+            }
           }
           // glow + confetti
           const glowA = st.burst ? Math.max(0, 1 - (st.ubT - 0.5) / 1.2) * (st.ub === 'closing' ? 0 : 1) + (st.ub === 'open' ? 0.35 : 0) : 0;
-          glow.visible = gift.visible && st.boxK > 0.3 && glowA > 0.01;
+          glow.visible = gift.visible && st.fallY < S * 1.5 && glowA > 0.01;
           if (glow.visible) { glow.position.copy(gift.position).addScaledVector(U, S * 0.45); glow.quaternion.copy(camera.quaternion); glowMat.uniforms.uA.value = Math.min(1, glowA); }
           confetti.forEach((c) => {
             if (!c.m.visible) return;
@@ -613,7 +709,7 @@ void main() {
             c.m.material.opacity = Math.min(1, c.life * 2);
           });
           // the note rides just above the open box
-          if (note.classList.contains('on') && gift.visible && st.boxK > 0.97) {
+          if (note.classList.contains('on') && gift.visible && st.fallY < S * 0.05) {
             const s = screenRadius(gift.position, S * 0.62 * st.gScale);
             const nw = note.offsetWidth || 300, nh = note.offsetHeight || 260;
             const x = Math.max(10, Math.min(window.innerWidth - nw - 10, s.c.x - nw / 2));
@@ -632,16 +728,20 @@ void main() {
           const a = ropeOut ? st.m : z2.set(0, 0);
           const span = n2.copy(b).sub(a).length();
           string.visible = on && (ropeOut || mlen > MOON_R * 0.95);
-          if (!string.visible) return;
-          const sag = ropeOut && span < L ? Math.sqrt(L * L - span * span) * 0.45 : 0;   // a slack rope hangs
+          if (!string.visible) { rope.init = false; return; }
+          // rope length: with the gift out it is the full rope (slack hangs and swings); while the moon is pulled
+          // out of the hole there is a little extra so it can wave about, but never more than the rope has
+          ra.copy(a); rb.copy(b);
+          const restL = ropeOut ? Math.max(L, span) : Math.max(span, Math.min(L, span + MOON_R * 1.4));
+          simRope(ra, rb, restL, dt, D);
           const k = Math.min(1, span / L);
-          const width = MOON_R * (0.2 - 0.1 * (ropeOut ? 0 : k));
-          sMat.uniforms.uAlpha.value = 0.75 + 0.25 * k;
+          const width = MOON_R * (0.34 - 0.12 * (ropeOut ? 0 : k));
+          sMat.uniforms.uAlpha.value = 0.85 + 0.15 * k;
+          sMat.uniforms.uColor.value.copy(moonMat.uniforms.uColor.value).multiplyScalar(1.5);   // glows in the moon colour
           for (let i = 0; i <= SEG; i++) {
-            const t = i / SEG;
-            const x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t - sag * 4 * t * (1 - t);
-            v.copy(moonRest).addScaledVector(R, x).addScaledVector(U, y);
-            const tx = b.x - a.x, ty = (b.y - a.y) - sag * 4 * (1 - 2 * t);           // curve tangent in the plane
+            const pt = rope.p[i], pa = rope.p[Math.max(0, i - 1)], pb = rope.p[Math.min(SEG, i + 1)];
+            v.copy(moonRest).addScaledVector(R, pt.x).addScaledVector(U, pt.y);
+            const tx = pb.x - pa.x, ty = pb.y - pa.y;                                     // tangent along the rope
             w.copy(R).multiplyScalar(-ty).addScaledVector(U, tx).normalize().multiplyScalar(width * 0.5);
             sPos.set([v.x - w.x, v.y - w.y, v.z - w.z, v.x + w.x, v.y + w.y, v.z + w.z], i * 6);
           }

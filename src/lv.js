@@ -141,8 +141,9 @@
     });
     hand.appendChild(svg);
     document.body.appendChild(hand);
-    // the moon's own little note
+    // the moon's own little note (unless the moon is already showing its own)
     const bubble = document.createElement('div');
+    if (S.moonHint) bubble.style.display = 'none';
     bubble.className = 'lv-moon-note'; bubble.textContent = 'Try pulling me!';
     document.body.appendChild(bubble);
     const bw = bubble.offsetWidth, bh = bubble.offsetHeight;
@@ -305,11 +306,11 @@
     const vw = window.innerWidth, vh = window.innerHeight, cr = cards[1].getBoundingClientRect();
     const pw = steamEl.offsetWidth, ph = steamEl.offsetHeight;
     let x, y;
-    if (vw < 700) { x = 10; y = Math.max(64, (vh - ph) / 2); }   // phones: a centred pop-up over the card (closes with ×)
-    else {
-      x = cr.right + 8 + pw <= vw - 10 ? cr.right + 8 : Math.max(10, cr.left - 8 - pw);
-      y = Math.max(70, Math.min(vh - ph - 12, cr.top));
-    }
+    // beside the card when there is room; otherwise (phones, narrow windows) a centred pop-up over it, the card softened behind
+    const right = cr.right + 8 + pw <= vw - 10, left = cr.left - 8 - pw >= 10, over = vw < 700 || !right && !left;
+    if (over) { x = Math.max(10, (vw - pw) / 2); y = Math.max(64, (vh - ph) / 2); }
+    else { x = right ? cr.right + 8 : cr.left - 8 - pw; y = Math.max(70, Math.min(vh - ph - 12, cr.top)); }
+    if (over !== document.body.classList.contains('lv-steam-over')) document.body.classList.toggle('lv-steam-over', over);
     steamEl.style.transform = 'translate3d(' + Math.round(x) + 'px,' + Math.round(y) + 'px,0)';
   })();
 
@@ -435,7 +436,7 @@
     let want = panelOpen && now - lastInsideAt < 900 ? 1
       : natural >= 0 ? natural : labelHover >= 0 ? labelHover : focusIdx >= 0 ? focusIdx : cardHover >= 0 ? cardHover : panelHover ? 1 : touchOpen;
     if (want >= 0) lastWantAt = now;                                          // last real hover / tap
-    else if (active >= 0 && now - lastWantAt < 600) want = active;           // a moment's grace to move from the stone onto its card
+    else if (active >= 0 && now - lastWantAt < 200) want = active;           // a moment's grace to move from the stone onto its card
     S.hold = want;
 
     // once the stone is out of the lava its label pill appears above it; holding the hover fills the
@@ -495,13 +496,13 @@
       const mh = narrow ? Math.max(160, vh - top - 120) : 2000;              // phones: the card may cover its stone rather than squeeze
       if (c._mh !== mh) { c._mh = mh; c.style.setProperty('--mh', mh + 'px'); size.delete(c); cs = sizeOf(c); }
       if (!narrow && cs.h > room) {
-        if (!p.side) p.side = ax > vw / 2 ? -1 : 1;                 // chosen once per opening: no jumping
-        const gap = r.r + 26;
-        tx = Math.max(10, Math.min(vw - cs.w - 10, p.side > 0 ? ax + gap : ax - gap - cs.w));
-        ty = Math.max(top, Math.min(bottom - cs.h, r.y - cs.h * 0.55));
+        // no room above its stone: the card takes the middle of the screen (the tether still joins it to the stone)
+        p.side = 1;
+        tx = Math.max(10, (vw - cs.w) / 2);
+        ty = Math.max(top, Math.min(bottom - cs.h, (vh - cs.h) / 2));
       } else {
         p.side = 0;
-        tx = Math.max(10, Math.min(vw - cs.w - 10, ax - cs.w / 2));
+        tx = Math.max(10, (vw - cs.w) / 2);                          // always the middle of the screen
         ty = Math.max(top, ay - 22 - cs.h);
       }
     } else {
@@ -605,6 +606,7 @@
     d.addEventListener('pointerleave', () => { if (labelHover === i) labelHover = -1; });
     d.addEventListener('focus', () => { focusIdx = i; });
     d.addEventListener('blur', () => { if (focusIdx === i) focusIdx = -1; });
+    d.addEventListener('click', () => { touchOpen = touchOpen === i ? -1 : i; });   // a tap (or click) opens / closes its card
   });
   cards.forEach((c) => c.setAttribute('aria-hidden', 'true'));
   window.addEventListener('keydown', (e) => {

@@ -125,7 +125,7 @@ sub1("          if (waveOn) pushFrom(waveFocusX, waveFocusY, forceRadius * (MOBI
 sub1("        const swR = MOBILE_A ? 8 : 22, swK = MOBILE_A ? 7 : 22;", "        const swR = MOBILE_A ? 6 : 22, swK = MOBILE_A ? 4 : 22;")
 # instant loading screen as the first thing in <body> (the ~3.5 MB of embedded data follows it), faded with the intro veil
 import re as _re
-s, _n = _re.subn(r'(<body[^>]*>)', lambda m: m.group(1) + '\n  <div id="boot" aria-hidden="true"><b>Arjun H</b><span>QA · Kwalee</span><i></i></div>', s, count=1)
+s, _n = _re.subn(r'(<body[^>]*>)', lambda m: m.group(1) + '\n  <div id="boot" aria-hidden="true"><b>Arjun H</b><span>QA · Kwalee</span><i></i></div>\n<script>' + open('src/watchdog.js', encoding='utf8').read() + '</script>', s, count=1)
 assert _n == 1
 sub1("              introVeil.style.opacity = '0';",
      "              introVeil.style.opacity = '0';\n              { const boot = document.getElementById('boot'); if (boot) { boot.classList.add('done'); setTimeout(() => boot.classList.add('gone'), 260); setTimeout(() => boot.remove(), 950); } }")
@@ -206,7 +206,35 @@ sub1("""        if (MOBILE_A) { camSpherical.targetRadius = fitR; layoutRocksFor
 sub1('</head>', '<style>\n' + css + '\n</style>\n</head>')
 assert s.count('</body>') == 1
 s = s.replace('</body>', '<script>\n' + js + '\n</script>\n</body>')
+# the Bugs form (posts to the Apps Script web app behind the bugs sheet)
+s = s.replace('</body>', '<script>\n' + open('src/bugs.js', encoding='utf8').read() + '\n</script>\n</body>')
 
+
+
+# ---------- loading: the heavy data lives in its own cached files instead of inside the page ----------
+# (the page itself drops from ~4 MB to a few hundred KB, so it shows up fast; the files download in parallel)
+_i = s.index('<!-- ARJUN_BLENDER_ASSETS'); _j = s.index('<script>', _i); _k = s.index('</script>', _j) + len('</script>')
+s = s[:_j] + ("<script>window.__ARJUN_BLOCKS_URL = 'assets/blocks.bin';\n"
+              "window.__ARJUN_TEX = { albedo: 'assets/tex/albedo.jpg', normal: 'assets/tex/normal.jpg', height: 'assets/tex/height.jpg', crack: 'assets/tex/crack.jpg' };</script>") + s[_k:]
+sub1("""        const b64 = window.__ARJUN_BLOCKS_GZ_B64;
+        if (!b64) return null;
+        const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));""",
+"""        let bin;
+        if (window.__ARJUN_BLOCKS_URL) {
+          const r = await fetch(window.__ARJUN_BLOCKS_URL);
+          if (!r.ok) return null;
+          bin = new Uint8Array(await r.arrayBuffer());
+        } else {
+          const b64 = window.__ARJUN_BLOCKS_GZ_B64;
+          if (!b64) return null;
+          bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+        }""")
+# three.js from the site itself (some networks / blockers stop cdnjs); same file, same integrity hash
+sub1('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"', '<script src="assets/js/three.min.js"')
+s = s.replace("script-src 'unsafe-inline' https://cdnjs.cloudflare.com;", "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;", 1)
+s = s.replace("connect-src data: blob:;", "connect-src 'self' data: blob: https://script.google.com https://script.googleusercontent.com;", 1)   # + the Bugs form
+# start the big downloads straight away
+sub1('<meta name="theme-color" content="#150a06">', '<meta name="theme-color" content="#150a06">\n  <link rel="preload" href="assets/blocks.bin" as="fetch" crossorigin>\n  <link rel="preload" href="assets/tex/albedo.jpg" as="image">\n  <link rel="preload" href="assets/tex/normal.jpg" as="image">')
 
 # stones leaping out of / landing in the lava: soft, soothing tones in place of the bursting / splashing noises
 sub1("""        tone(d, t, 'sine', rndA(70, 90), rndA(190, 240), 0.16, 0.01, 0.18);           // thick bubble bursting

@@ -325,7 +325,7 @@ html[data-theme]:not([data-theme="fire"]):not([data-theme="electric"]) .lv-brand
 
 /* info cards that condense out of the steam */
 .lv-card { position: absolute; left: 0; top: 0; width: 360px; max-width: calc(100vw - 24px); pointer-events: none; visibility: hidden; opacity: 0;
-  transform: translate3d(var(--x, -999px), var(--y, -999px), 0); will-change: transform; }
+  transform: translate3d(var(--x, -999px), var(--y, -999px), 0) scale(var(--fit, 1)); transform-origin: 0 0; will-change: transform; }
 /* solid dark glass (a live backdrop blur over the moving 3D scene is what dropped frames) */
 .lv-card .in { position: relative; border-radius: 18px; padding: 16px 16px 12px; background: rgba(20, 9, 4, 0.93);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 90, 20, 0.14), inset 0 1px 0 rgba(255, 200, 140, 0.12); overflow: hidden; }
@@ -748,7 +748,7 @@ html.pf-fail #mini-ui, html.pf-fail #btn-audio { display: none !important; }
 .lv-moon-hint.on.bump { animation: lv-hint-bump 0.35s cubic-bezier(0.2, 1.6, 0.4, 1); }
 @keyframes lv-hint-bump { from { transform: rotate(-3deg) scale(1.18); } }
 body.lv-steam-over .lv-steam-x { display: block; }   /* the pop-up over the card can always be closed */
-body.lv-steam-over .lv-label { opacity: 0 !important; pointer-events: none !important; }
+body.lv-steam-on .lv-label { opacity: 0 !important; pointer-events: none !important; }
 
 /* ---------- Bugs form ---------- */
 .lv-bugs { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 16px; background: rgba(8, 3, 1, 0.55); opacity: 0; visibility: hidden; transition: opacity 0.25s, visibility 0s 0.25s;
@@ -770,6 +770,9 @@ body.lv-steam-over .lv-label { opacity: 0 !important; pointer-events: none !impo
 .lv-bugs-status { margin: 10px 0 0; min-height: 1.2em; font-size: 12.5px; text-align: center; color: var(--lv-mute); }
 .lv-bugs-status.ok { color: #7bd88f; }
 .lv-bugs-status.err { color: #ff8a7a; }
+/* Projects card beside its Steam panel in a narrower window: one column, scrolls if it must */
+.lv-card.wide.compact { width: 380px; }
+.lv-card.wide.compact .lv-scroll { column-count: 1; max-height: calc(100vh - 220px); overflow-y: auto; }
 
 </style>
 </head>
@@ -9207,9 +9210,10 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
     const pw = steamEl.offsetWidth, ph = steamEl.offsetHeight;
     let x, y;
     // beside the card when there is room; otherwise (phones, narrow windows) a centred pop-up over it, the card softened behind
-    const right = cr.right + 8 + pw <= vw - 10, left = cr.left - 8 - pw >= 10, over = vw < 700 || !right && !left;
+    // desktop: always beside the card (the pair is centred by the frame loop); phones: a centred pop-up over it
+    const over = vw < 700;
     if (over) { x = Math.max(10, (vw - pw) / 2); y = Math.max(64, (vh - ph) / 2); }
-    else { x = right ? cr.right + 8 : cr.left - 8 - pw; y = Math.max(70, Math.min(vh - ph - 12, cr.top)); }
+    else { x = Math.min(vw - pw - 10, cr.right + 8); y = Math.max(70, Math.min(vh - ph - 12, cr.top)); }
     if (over !== document.body.classList.contains('lv-steam-over')) document.body.classList.toggle('lv-steam-over', over);
     steamEl.style.transform = 'translate3d(' + Math.round(x) + 'px,' + Math.round(y) + 'px,0)';
   })();
@@ -9388,6 +9392,11 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
     // shrunk: when there isn't room above the stone it floats beside it instead (phones scroll by swipe).
     const c = cards[active], p = pos[active], r = S.rocks[active];
     const narrow = vw < 700, top = uiTop(vw), bottom = vh - 80;
+    // desktop with the Steam panel open: the Projects card and the panel sit side by side as a centred pair;
+    // where the window is too narrow for the wide card, it folds to one column to make room
+    const pair = active === 1 && !narrow && steamEl.classList.contains('on');
+    const compact = pair && vw < 1040;
+    if (compact !== c.classList.contains('compact')) { c.classList.toggle('compact', compact); size.delete(c); }
     let cs = sizeOf(c);
     let tx, ty, ax = null, ay = null;
     if (r && r.vis && !fallback) {
@@ -9409,6 +9418,11 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
       if (c._mh !== 420) { c._mh = 420; c.style.setProperty('--mh', '420px'); size.delete(c); cs = sizeOf(c); }
       tx = (vw - cs.w) / 2; ty = Math.max(70, (vh - cs.h) / 2 - 20);
     }
+    if (pair) tx = Math.max(10, (vw - cs.w - 8 - Math.min(340, steamEl.offsetWidth || 340)) / 2);
+    // short screens (a phone on its side, a small laptop window): a card taller than the room is scaled to fit
+    const fit = narrow ? 1 : Math.min(1, (vh - top - 12) / cs.h);
+    if (fit < 1) { tx = pair ? tx : Math.max(10, (vw - cs.w * fit) / 2); ty = top; }
+    if (c._fit !== fit) { c._fit = fit; c.style.setProperty('--fit', fit.toFixed(3)); }
     if (!p.init) { p.x = tx; p.y = ty + 14; p.init = true; }
     const k = reduce ? 1 : 0.16;
     p.x += (tx - p.x) * k; p.y += (ty - p.y) * k;

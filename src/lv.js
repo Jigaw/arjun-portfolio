@@ -307,9 +307,10 @@
     const pw = steamEl.offsetWidth, ph = steamEl.offsetHeight;
     let x, y;
     // beside the card when there is room; otherwise (phones, narrow windows) a centred pop-up over it, the card softened behind
-    const right = cr.right + 8 + pw <= vw - 10, left = cr.left - 8 - pw >= 10, over = vw < 700 || !right && !left;
+    // desktop: always beside the card (the pair is centred by the frame loop); phones: a centred pop-up over it
+    const over = vw < 700;
     if (over) { x = Math.max(10, (vw - pw) / 2); y = Math.max(64, (vh - ph) / 2); }
-    else { x = right ? cr.right + 8 : cr.left - 8 - pw; y = Math.max(70, Math.min(vh - ph - 12, cr.top)); }
+    else { x = Math.min(vw - pw - 10, cr.right + 8); y = Math.max(70, Math.min(vh - ph - 12, cr.top)); }
     if (over !== document.body.classList.contains('lv-steam-over')) document.body.classList.toggle('lv-steam-over', over);
     steamEl.style.transform = 'translate3d(' + Math.round(x) + 'px,' + Math.round(y) + 'px,0)';
   })();
@@ -488,6 +489,11 @@
     // shrunk: when there isn't room above the stone it floats beside it instead (phones scroll by swipe).
     const c = cards[active], p = pos[active], r = S.rocks[active];
     const narrow = vw < 700, top = uiTop(vw), bottom = vh - 80;
+    // desktop with the Steam panel open: the Projects card and the panel sit side by side as a centred pair;
+    // where the window is too narrow for the wide card, it folds to one column to make room
+    const pair = active === 1 && !narrow && steamEl.classList.contains('on');
+    const compact = pair && vw < 1040;
+    if (compact !== c.classList.contains('compact')) { c.classList.toggle('compact', compact); size.delete(c); }
     let cs = sizeOf(c);
     let tx, ty, ax = null, ay = null;
     if (r && r.vis && !fallback) {
@@ -509,6 +515,11 @@
       if (c._mh !== 420) { c._mh = 420; c.style.setProperty('--mh', '420px'); size.delete(c); cs = sizeOf(c); }
       tx = (vw - cs.w) / 2; ty = Math.max(70, (vh - cs.h) / 2 - 20);
     }
+    if (pair) tx = Math.max(10, (vw - cs.w - 8 - Math.min(340, steamEl.offsetWidth || 340)) / 2);
+    // short screens (a phone on its side, a small laptop window): a card taller than the room is scaled to fit
+    const fit = narrow ? 1 : Math.min(1, (vh - top - 12) / cs.h);
+    if (fit < 1) { tx = pair ? tx : Math.max(10, (vw - cs.w * fit) / 2); ty = top; }
+    if (c._fit !== fit) { c._fit = fit; c.style.setProperty('--fit', fit.toFixed(3)); }
     if (!p.init) { p.x = tx; p.y = ty + 14; p.init = true; }
     const k = reduce ? 1 : 0.16;
     p.x += (tx - p.x) * k; p.y += (ty - p.y) * k;

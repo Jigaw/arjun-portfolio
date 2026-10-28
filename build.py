@@ -236,6 +236,9 @@ s = s.replace("connect-src data: blob:;", "connect-src 'self' data: blob: https:
 # start the big downloads straight away
 sub1('<meta name="theme-color" content="#150a06">', '<meta name="theme-color" content="#150a06">\n  <link rel="preload" href="assets/blocks.bin" as="fetch" crossorigin>\n  <link rel="preload" href="assets/tex/albedo.jpg" as="image">\n  <link rel="preload" href="assets/tex/normal.jpg" as="image">')
 
+# the moon over the lava: a warm white rather than orange (its glow and rope take the same colour)
+sub1("fire: { c: [1.35, 0.8, 0.48], a: 0.85, g: 0.55 },", "fire: { c: [1.32, 1.12, 0.94], a: 0.9, g: 0.55 },")
+
 # stones leaping out of / landing in the lava: soft, soothing tones in place of the bursting / splashing noises
 sub1("""        tone(d, t, 'sine', rndA(70, 90), rndA(190, 240), 0.16, 0.01, 0.18);           // thick bubble bursting
         tone(d, t + 0.05, 'sine', rndA(140, 170), rndA(60, 80), 0.08, 0.005, 0.22);

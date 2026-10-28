@@ -6,3 +6,4 @@ index-timing.html
 .DS_Store
 Thumbs.db
 tools/
+!assets/blocks.bin

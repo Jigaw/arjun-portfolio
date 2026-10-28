@@ -239,6 +239,14 @@ sub1('<meta name="theme-color" content="#150a06">', '<meta name="theme-color" co
 # the moon over the lava: a warm white rather than orange (its glow and rope take the same colour)
 sub1("fire: { c: [1.35, 0.8, 0.48], a: 0.85, g: 0.55 },", "fire: { c: [1.32, 1.12, 0.94], a: 0.9, g: 0.55 },")
 
+# sound starts with the visitor's first tap / click / key anywhere on the page (browsers keep audio paused until
+# then); before, only a few controls woke it, so it often needed the speaker toggled off and on
+sub1("""      function playCrystalChime(freqBase = 840, duration = 0.11) {""", """      ['pointerdown', 'touchend', 'keydown', 'click'].forEach((t) => window.addEventListener(t, () => {
+        if (audioEnabled && (!audioCtx || audioCtx.state !== 'running')) initAudio();
+      }, { capture: true, passive: true }));
+
+      function playCrystalChime(freqBase = 840, duration = 0.11) {""")
+
 # stones leaping out of / landing in the lava: soft, soothing tones in place of the bursting / splashing noises
 sub1("""        tone(d, t, 'sine', rndA(70, 90), rndA(190, 240), 0.16, 0.01, 0.18);           // thick bubble bursting
         tone(d, t + 0.05, 'sine', rndA(140, 170), rndA(60, 80), 0.08, 0.005, 0.22);

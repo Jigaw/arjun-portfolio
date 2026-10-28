@@ -2286,6 +2286,10 @@ window.__ARJUN_TEX = { albedo: 'assets/tex/albedo.jpg', normal: 'assets/tex/norm
         }
       }
 
+      ['pointerdown', 'touchend', 'keydown', 'click'].forEach((t) => window.addEventListener(t, () => {
+        if (audioEnabled && (!audioCtx || audioCtx.state !== 'running')) initAudio();
+      }, { capture: true, passive: true }));
+
       function playCrystalChime(freqBase = 840, duration = 0.11) {
         if (!audioEnabled || !audioCtx) return;
         const now = audioCtx.currentTime;

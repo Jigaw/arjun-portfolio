@@ -368,15 +368,18 @@
     // the centre icon: the old one slides out the way you swept, the new one slides in from the other side
     const core = box.querySelector('.lv-orbit-core'); core.setAttribute('aria-label', g.name);
     const ico = svgIcon(g.icon, 'lv-core-ico', true);
+    core.querySelectorAll('.lv-core-ico.leaving').forEach((x) => x.remove());   // a quick second swipe: last one's leftovers go at once
     const oldIco = core.querySelector('.lv-core-ico');
     const anim = !reduce && dir && oldIco && oldIco.animate;
     if (anim) {
       const o = oldIco; o.classList.add('leaving');
       o.animate([{ transform: 'translateX(0)', opacity: 1 }, { transform: 'translateX(' + (-dir * 34) + 'px)', opacity: 0 }], { duration: 200, easing: 'ease-in', fill: 'forwards' }).onfinish = () => o.remove();
+      setTimeout(() => o.remove(), 260);                              // (also if the animation never finishes, e.g. a hidden tab)
       ico.animate([{ transform: 'translateX(' + (dir * 34) + 'px) scale(0.7)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 340, delay: 60, easing: 'cubic-bezier(0.2, 1.4, 0.4, 1)', fill: 'backwards' });
     } else core.querySelectorAll('.lv-core-ico').forEach((x) => x.remove());
     core.appendChild(ico);
     // the ring of skills: built in its own layer so a step can spin the old ring out and the new one in
+    box.querySelectorAll('.lv-ring.leaving').forEach((r) => r.remove());
     const oldRing = box.querySelector('.lv-ring:not(.leaving)');
     const ring = el('div', 'lv-ring');
     const nodes = g.logos ? g.logos.map(logoBadge) : g.items.map((x) => el('span', 'lv-orb chip', x));
@@ -399,6 +402,7 @@
       box.classList.remove('pop');                                   // (the pop-from-the-middle is only for the first open)
       oldRing.classList.add('leaving');
       oldRing.animate([{ transform: 'rotate(0deg) scale(1)', opacity: 1 }, { transform: 'rotate(' + (-dir * 40) + 'deg) scale(0.86)', opacity: 0 }], { duration: 240, easing: 'ease-in', fill: 'forwards' }).onfinish = () => oldRing.remove();
+      setTimeout(() => oldRing.remove(), 300);
       ring.classList.add('placed');
       ring.animate([{ transform: 'rotate(' + (dir * 50) + 'deg) scale(0.86)', opacity: 0 }, { transform: 'rotate(0deg) scale(1)', opacity: 1 }], { duration: 460, delay: 80, easing: 'cubic-bezier(0.2, 1.25, 0.35, 1)', fill: 'backwards' });
     } else {

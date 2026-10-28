@@ -539,16 +539,19 @@
     if (r && r.vis && !fallback) {
       ax = r.x; ay = r.y - Math.max(8, r.r * 0.85);                 // top of the stone
       const room = Math.round(ay - 22 - top);
+      // Projects, Skills and Experience take the middle of the screen; Education and Languages open over their own
+      // stones, on their own side (phones: every card is full width anyway)
+      const centreX = active === 0 || active === 4 ? Math.max(10, Math.min(vw - cs.w - 10, ax - cs.w / 2)) : Math.max(10, (vw - cs.w) / 2);
       const mh = narrow ? Math.max(160, vh - top - 120) : 2000;              // phones: the card may cover its stone rather than squeeze
       if (c._mh !== mh) { c._mh = mh; c.style.setProperty('--mh', mh + 'px'); size.delete(c); cs = sizeOf(c); }
       if (!narrow && cs.h > room) {
         // no room above its stone: the card takes the middle of the screen (the tether still joins it to the stone)
         p.side = 1;
-        tx = Math.max(10, (vw - cs.w) / 2);
+        tx = centreX;
         ty = Math.max(top, Math.min(bottom - cs.h, (vh - cs.h) / 2));
       } else {
         p.side = 0;
-        tx = Math.max(10, (vw - cs.w) / 2);                          // always the middle of the screen
+        tx = centreX;
         ty = Math.max(top, ay - 22 - cs.h);
       }
     } else {

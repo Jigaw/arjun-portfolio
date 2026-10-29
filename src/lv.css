@@ -546,3 +546,4 @@ body.lv-steam-on .lv-label { opacity: 0 !important; pointer-events: none !import
 
 /* a card that has only just opened ignores taps (see lv.js showCard) */
 .lv-card.opening, .lv-card.opening * { pointer-events: none !important; }
+

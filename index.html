@@ -792,6 +792,7 @@ body.lv-steam-on .lv-label { opacity: 0 !important; pointer-events: none !import
 /* a card that has only just opened ignores taps (see lv.js showCard) */
 .lv-card.opening, .lv-card.opening * { pointer-events: none !important; }
 
+
 </style>
 </head>
 <body class="relative w-full h-full select-none overflow-hidden">
@@ -8310,12 +8311,27 @@ void main() {
       const unlockAudio = () => {
         if (audioUnlocked) return;
         audioUnlocked = true;
-        ['pointerdown', 'touchend', 'keydown'].forEach((ev) => window.removeEventListener(ev, unlockAudio, true));
         if (!audioEnabled) return;
         initAudio();
         startWind(); startIglooDrone(); startThemeAudio(); startMusic();
       };
-      ['pointerdown', 'touchend', 'keydown'].forEach((ev) => window.addEventListener(ev, unlockAudio, true));
+      const unlockEvents = ['pointerup', 'touchend', 'keydown', 'click'];
+      unlockEvents.forEach((ev) => window.addEventListener(ev, unlockAudio, true));
+      function tryAutoSound() {
+        if (audioUnlocked || !audioEnabled || document.hidden) return;
+        let policy = 'unknown';
+        try { if (navigator.getAutoplayPolicy) policy = navigator.getAutoplayPolicy('audiocontext'); } catch (e) { /* ignore */ }
+        if (policy === 'disallowed') return;   // the first tap starts it instead
+        initAudio();
+        setTimeout(() => {
+          if (audioUnlocked) return;
+          if (audioCtx && audioCtx.state === 'running') unlockAudio();
+        }, 300);
+      }
+      { const bootEl = document.getElementById('boot');
+        if (!bootEl) setTimeout(tryAutoSound, 800);
+        else new MutationObserver((m, ob) => { if (!bootEl.isConnected || bootEl.classList.contains('done')) { ob.disconnect(); setTimeout(tryAutoSound, 600); } })
+          .observe(bootEl, { attributes: true, attributeFilter: ['class'] }); }
       btnAudio.addEventListener('click', () => {
         initAudio();
         audioEnabled = !audioEnabled;

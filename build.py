@@ -337,5 +337,31 @@ n = s.count("if (!audioEnabled || ")
 assert n >= 12, n
 s = s.replace("if (!audioEnabled || ", "if (!audioEnabled || document.hidden || ")
 
+# sound when the loading screen lifts: browsers only allow sound after the visitor's first tap / click / key (or
+# right away where they have played sound on this site before). So the page tries to start it the moment the scene
+# shows; when the browser says no, the first tap / click / key starts it.
+# Phones: a touch pointerdown does not count as a tap for audio, so the unlock now waits for the tap's release.
+sub1("""      ['pointerdown', 'touchend', 'keydown'].forEach((ev) => window.addEventListener(ev, unlockAudio, true));
+      btnAudio""", """      const unlockEvents = ['pointerup', 'touchend', 'keydown', 'click'];
+      unlockEvents.forEach((ev) => window.addEventListener(ev, unlockAudio, true));
+      function tryAutoSound() {
+        if (audioUnlocked || !audioEnabled || document.hidden) return;
+        let policy = 'unknown';
+        try { if (navigator.getAutoplayPolicy) policy = navigator.getAutoplayPolicy('audiocontext'); } catch (e) { /* ignore */ }
+        if (policy === 'disallowed') return;   // the first tap starts it instead
+        initAudio();
+        setTimeout(() => {
+          if (audioUnlocked) return;
+          if (audioCtx && audioCtx.state === 'running') unlockAudio();
+        }, 300);
+      }
+      { const bootEl = document.getElementById('boot');
+        if (!bootEl) setTimeout(tryAutoSound, 800);
+        else new MutationObserver((m, ob) => { if (!bootEl.isConnected || bootEl.classList.contains('done')) { ob.disconnect(); setTimeout(tryAutoSound, 600); } })
+          .observe(bootEl, { attributes: true, attributeFilter: ['class'] }); }
+      btnAudio""")
+sub1("""        ['pointerdown', 'touchend', 'keydown'].forEach((ev) => window.removeEventListener(ev, unlockAudio, true));
+""", "")
+
 open('index.html', 'w', encoding='utf8').write(s)
 print('ok', len(s))

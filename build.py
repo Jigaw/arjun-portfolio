@@ -214,7 +214,7 @@ s = s.replace('</body>', '<script>\n' + open('src/bugs.js', encoding='utf8').rea
 # ---------- loading: the heavy data lives in its own cached files instead of inside the page ----------
 # (the page itself drops from ~4 MB to a few hundred KB, so it shows up fast; the files download in parallel)
 _i = s.index('<!-- ARJUN_BLENDER_ASSETS'); _j = s.index('<script>', _i); _k = s.index('</script>', _j) + len('</script>')
-s = s[:_j] + ("<script>window.__ARJUN_BLOCKS_URL = 'assets/blocks.bin';\n"
+s = s[:_j] + ("<script>window.__ARJUN_BLOCKS_URL = window.__ARJUN_BLOCKS_LITE ? 'assets/blocks-lite.bin' : 'assets/blocks.bin';\n"
               "window.__ARJUN_TEX = { albedo: 'assets/tex/albedo.jpg', normal: 'assets/tex/normal.jpg', height: 'assets/tex/height.jpg', crack: 'assets/tex/crack.jpg' };</script>") + s[_k:]
 sub1("""        const b64 = window.__ARJUN_BLOCKS_GZ_B64;
         if (!b64) return null;
@@ -233,8 +233,14 @@ sub1("""        const b64 = window.__ARJUN_BLOCKS_GZ_B64;
 sub1('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"', '<script src="assets/js/three.min.js"')
 s = s.replace("script-src 'unsafe-inline' https://cdnjs.cloudflare.com;", "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;", 1)
 s = s.replace("connect-src data: blob:;", "connect-src 'self' data: blob: https://script.google.com https://script.googleusercontent.com;", 1)   # + the Bugs form
-# start the big downloads straight away
-sub1('<meta name="theme-color" content="#150a06">', '<meta name="theme-color" content="#150a06">\n  <link rel="preload" href="assets/blocks.bin" as="fetch" crossorigin>\n  <link rel="preload" href="assets/tex/albedo.jpg" as="image">\n  <link rel="preload" href="assets/tex/normal.jpg" as="image">')
+# start the big downloads straight away. Phones (and ?lite) get the lighter blocks re-exported from Blender (a third
+# of the triangles, half the download); ?full forces the full set. Chosen first thing so the right file starts at once.
+_pick = ("<script>(function () { var q = location.search, phone = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)"
+         " || (window.matchMedia && matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 900);"
+         " window.__ARJUN_BLOCKS_LITE = /[?&]lite(&|$)/.test(q) || (phone && !/[?&]full(&|$)/.test(q));"
+         " var l = document.createElement('link'); l.rel = 'preload'; l.as = 'fetch'; l.crossOrigin = 'anonymous';"
+         " l.href = window.__ARJUN_BLOCKS_LITE ? 'assets/blocks-lite.bin' : 'assets/blocks.bin'; document.head.appendChild(l); })();</script>")
+sub1('<meta name="theme-color" content="#150a06">', '<meta name="theme-color" content="#150a06">\n  ' + _pick + '\n  <link rel="preload" href="assets/tex/albedo.jpg" as="image">\n  <link rel="preload" href="assets/tex/normal.jpg" as="image">')
 
 # the moon over the lava: a warm white rather than orange (its glow and rope take the same colour)
 sub1("fire: { c: [1.35, 0.8, 0.48], a: 0.85, g: 0.55 },", "fire: { c: [1.32, 1.12, 0.94], a: 0.9, g: 0.55 },")

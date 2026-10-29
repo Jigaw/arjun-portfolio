@@ -7,7 +7,7 @@
   <title>Arjun H · QA at Kwalee</title>
   <meta name="description" content="Arjun H, QA at Kwalee (game testing). An interactive 3D portfolio: hover the stones in the lava.">
   <meta name="theme-color" content="#150a06">
-  <link rel="preload" href="assets/blocks.bin" as="fetch" crossorigin>
+  <script>(function () { var q = location.search, phone = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (window.matchMedia && matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 900); window.__ARJUN_BLOCKS_LITE = /[?&]lite(&|$)/.test(q) || (phone && !/[?&]full(&|$)/.test(q)); var l = document.createElement('link'); l.rel = 'preload'; l.as = 'fetch'; l.crossOrigin = 'anonymous'; l.href = window.__ARJUN_BLOCKS_LITE ? 'assets/blocks-lite.bin' : 'assets/blocks.bin'; document.head.appendChild(l); })();</script>
   <link rel="preload" href="assets/tex/albedo.jpg" as="image">
   <link rel="preload" href="assets/tex/normal.jpg" as="image">
   <script src="assets/js/three.min.js" integrity="sha512-dLxUelApnYxpLt6K2iomGngnHO83iUvZytA3YjDUCjT0HDOHKXnVYdf3hU4JjM8uEhxf9nD1/ey98U3t2vZ0qQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -1273,7 +1273,7 @@ body.lv-steam-on .lv-label { opacity: 0 !important; pointer-events: none !import
   </div>
 
 <!-- ARJUN_BLENDER_ASSETS: blocks modelled + stone maps baked in Blender (see arjun_blender/*.py) -->
-<script>window.__ARJUN_BLOCKS_URL = 'assets/blocks.bin';
+<script>window.__ARJUN_BLOCKS_URL = window.__ARJUN_BLOCKS_LITE ? 'assets/blocks-lite.bin' : 'assets/blocks.bin';
 window.__ARJUN_TEX = { albedo: 'assets/tex/albedo.jpg', normal: 'assets/tex/normal.jpg', height: 'assets/tex/height.jpg', crack: 'assets/tex/crack.jpg' };</script>
   <script>
     (function () {

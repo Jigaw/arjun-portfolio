@@ -3667,21 +3667,26 @@ void main() {
       textures.blockCrack.needsUpdate = true;
       // Seamless stone maps baked in Blender replace the canvas-generated ones (kept as fallback)
       if (window.__ARJUN_TEX) {
+        const loadImg = (src) => new Promise((res) => {
+          const img = new Image(); img.decoding = 'async';
+          img.onload = () => (img.decode ? img.decode().catch(() => {}) : Promise.resolve()).then(() => res(img));
+          img.onerror = () => res(null);
+          img.src = src;
+        });
+        const waits = [];
         if (window.__ARJUN_TEX.crack) {
-          const img = new Image();
-          img.onload = () => {
+          waits.push(loadImg(window.__ARJUN_TEX.crack).then((img) => {
+            if (!img) return;
             const t = textures.blockCrack;
             t.image = img; t.format = THREE.RGBAFormat;
             t.wrapS = t.wrapT = THREE.RepeatWrapping; t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter;
             t.generateMipmaps = true; t.needsUpdate = true;
-          };
-          img.src = window.__ARJUN_TEX.crack;
+          }));
         }
         [['albedo', 'blockAlbedo'], ['normal', 'blockNormal'], ['height', 'blockBump']].forEach(([k, key]) => {
-          const img = new Image();
-          img.onload = () => { textures[key].image = img; textures[key].needsUpdate = true; };
-          img.src = window.__ARJUN_TEX[k];
+          waits.push(loadImg(window.__ARJUN_TEX[k]).then((img) => { if (img) { textures[key].image = img; textures[key].needsUpdate = true; } }));
         });
+        window.__arjunTexReady = Promise.all(waits);
       }
       scene.environment = textures.envMap;
 
@@ -8468,7 +8473,7 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
           if (state.word === 'ARJUN' && state.blockMultiplier === 1) { buildBrickScene('ARJUN'); applyThemeMaterials(); }
         })
         .catch((e) => console.warn('Blender blocks unavailable, using procedural blocks', e))
-        .finally(() => { clearTimeout(revealTimer); revealBlocks(); sceneReady = true; });
+        .finally(() => (window.__arjunTexReady || Promise.resolve()).then(() => { clearTimeout(revealTimer); revealBlocks(); sceneReady = true; }));
       fitFullWordInView();
       camSpherical.radius = camSpherical.targetRadius;
       camSpherical.theta = camSpherical.targetTheta;
@@ -8494,6 +8499,7 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
       let perfDpr = maxDpr, failDpr = 99, perfAcc = 0, perfFrames = 0, perfBad = false;
       function adaptResolution(dt) {
         if (document.hidden || dt > 0.2) { perfBad = true; return; } // throttled / background frames don't count
+        if (introT < 1) { perfAcc = 0; perfFrames = 0; return; }   // never resize during the opening glide (a resize hitches)
         perfAcc += dt; perfFrames++;
         if (perfAcc < 2) return;
         const fps = perfFrames / perfAcc;
@@ -8550,7 +8556,11 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
           camSpherical.radius = camSpherical.targetRadius * introFrom.k;
           camSpherical.phi = introFrom.phi; camSpherical.theta = introFrom.theta;
           if (sceneReady) {
-            if (introWarm === 0) { try { renderer.compile(scene, camera); } catch (e) { /* optional */ } }
+            if (introWarm === 0) {
+              try { renderer.compile(scene, camera); } catch (e) { /* optional */ }
+              // upload every stone texture now, behind the veil
+              if (renderer.initTexture) ['blockAlbedo', 'blockNormal', 'blockBump', 'blockCrack'].forEach((k) => { try { if (textures[k]) renderer.initTexture(textures[k]); } catch (e) { /* optional */ } });
+            }
             if (++introWarm >= 4) {
               introT = 0;
               introVeil.style.opacity = '0';

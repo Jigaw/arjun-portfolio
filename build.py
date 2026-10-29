@@ -247,6 +247,56 @@ sub1("""      function playCrystalChime(freqBase = 840, duration = 0.11) {""", "
 
       function playCrystalChime(freqBase = 840, duration = 0.11) {""")
 
+# smooth start on phones: the stone textures are separate files now, so the loading screen waits for them too.
+# Each one is decoded off the main thread and uploaded to the GPU behind the veil, so nothing is uploaded (and no
+# shader rebuilt) in the middle of the opening glide; and the resolution never changes during the glide.
+sub1("""        if (window.__ARJUN_TEX.crack) {
+          const img = new Image();
+          img.onload = () => {
+            const t = textures.blockCrack;
+            t.image = img; t.format = THREE.RGBAFormat;
+            t.wrapS = t.wrapT = THREE.RepeatWrapping; t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter;
+            t.generateMipmaps = true; t.needsUpdate = true;
+          };
+          img.src = window.__ARJUN_TEX.crack;
+        }
+        [['albedo', 'blockAlbedo'], ['normal', 'blockNormal'], ['height', 'blockBump']].forEach(([k, key]) => {
+          const img = new Image();
+          img.onload = () => { textures[key].image = img; textures[key].needsUpdate = true; };
+          img.src = window.__ARJUN_TEX[k];
+        });""",
+"""        const loadImg = (src) => new Promise((res) => {
+          const img = new Image(); img.decoding = 'async';
+          img.onload = () => (img.decode ? img.decode().catch(() => {}) : Promise.resolve()).then(() => res(img));
+          img.onerror = () => res(null);
+          img.src = src;
+        });
+        const waits = [];
+        if (window.__ARJUN_TEX.crack) {
+          waits.push(loadImg(window.__ARJUN_TEX.crack).then((img) => {
+            if (!img) return;
+            const t = textures.blockCrack;
+            t.image = img; t.format = THREE.RGBAFormat;
+            t.wrapS = t.wrapT = THREE.RepeatWrapping; t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter;
+            t.generateMipmaps = true; t.needsUpdate = true;
+          }));
+        }
+        [['albedo', 'blockAlbedo'], ['normal', 'blockNormal'], ['height', 'blockBump']].forEach(([k, key]) => {
+          waits.push(loadImg(window.__ARJUN_TEX[k]).then((img) => { if (img) { textures[key].image = img; textures[key].needsUpdate = true; } }));
+        });
+        window.__arjunTexReady = Promise.all(waits);""")
+sub1("""        .finally(() => { clearTimeout(revealTimer); revealBlocks(); sceneReady = true; });""",
+     """        .finally(() => (window.__arjunTexReady || Promise.resolve()).then(() => { clearTimeout(revealTimer); revealBlocks(); sceneReady = true; }));""")
+sub1("""            if (introWarm === 0) { try { renderer.compile(scene, camera); } catch (e) { /* optional */ } }""",
+     """            if (introWarm === 0) {
+              try { renderer.compile(scene, camera); } catch (e) { /* optional */ }
+              // upload every stone texture now, behind the veil
+              if (renderer.initTexture) ['blockAlbedo', 'blockNormal', 'blockBump', 'blockCrack'].forEach((k) => { try { if (textures[k]) renderer.initTexture(textures[k]); } catch (e) { /* optional */ } });
+            }""")
+sub1("""        if (document.hidden || dt > 0.2) { perfBad = true; return; } // throttled / background frames don't count""",
+     """        if (document.hidden || dt > 0.2) { perfBad = true; return; } // throttled / background frames don't count
+        if (introT < 1) { perfAcc = 0; perfFrames = 0; return; }   // never resize during the opening glide (a resize hitches)""")
+
 # stones leaping out of / landing in the lava: soft, soothing tones in place of the bursting / splashing noises
 sub1("""        tone(d, t, 'sine', rndA(70, 90), rndA(190, 240), 0.16, 0.01, 0.18);           // thick bubble bursting
         tone(d, t + 0.05, 'sine', rndA(140, 170), rndA(60, 80), 0.08, 0.005, 0.22);

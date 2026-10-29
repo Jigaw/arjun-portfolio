@@ -9150,7 +9150,7 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
   const sentiment = (s) => /positive/i.test(s) ? 'pos' : /mixed/i.test(s) ? 'mix' : 'neg';
   function fillPanel(it) {
     steamEl.textContent = '';
-    const x = el('button', 'lv-steam-x', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Close'); x.addEventListener('click', hidePanel); steamEl.appendChild(x);
+    const x = el('button', 'lv-steam-x', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Close'); x.addEventListener('click', () => { hidePanel(); noHoverOpenUntil = performance.now() + 900; }); steamEl.appendChild(x);
     if (it.id) {
       const img = el('img', 'lv-steam-img'); img.src = 'assets/steam/' + it.id + '.jpg'; img.alt = it.name; img.width = 460; img.height = 215;
       steamEl.appendChild(img);
@@ -9190,6 +9190,7 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
     if (row) row.classList.add('on');
     steamEl.classList.add('on'); steamEl.setAttribute('aria-hidden', 'false'); document.body.classList.add('lv-steam-on');
   }
+  let noHoverOpenUntil = 0;   // a moment after the panel is closed, hovering a row does not reopen it
   function hidePanel() {
     if (!steamEl.classList.contains('on')) return;
     steamEl.classList.remove('on'); steamEl.setAttribute('aria-hidden', 'true'); document.body.classList.remove('lv-steam-on');
@@ -9212,7 +9213,7 @@ print("Generated ${exportedPolys.length * 2} 6-course 2-layer carved stone block
         txt.appendChild(el('span', 'lv-proj-name', it.name));
         const pl = el('span', 'lv-plats'); it.plats.forEach((k) => { const ic = platIcon(k); if (ic) pl.appendChild(ic); }); txt.appendChild(pl);
         row.appendChild(txt);
-        row.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') showPanel(it, row); });
+        row.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse' && window.innerWidth >= 700 && performance.now() > noHoverOpenUntil) showPanel(it, row); });
         row.addEventListener('focus', () => showPanel(it, row));
         row.addEventListener('click', () => showPanel(it, row));
         grp.appendChild(row);

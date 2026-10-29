@@ -40,7 +40,7 @@
   const HOLD = 850;   // ms of hovering before the full card bursts out of the stone's label
 
   // ---------- state ----------
-  let labelHover = -1, focusIdx = -1;
+  let labelHover = -1, focusIdx = -1, dismissed = -1;
   const hov = { i: -1, upAt: 0 };
   let active = -1, shownAt = 0, introDone = false, fallback = false;
   const seen = new Array(N).fill(false);
@@ -474,8 +474,10 @@
     // and there's time to travel between the two by any route (e.g. down to "View on Steam")
     const panelOpen = steamEl.classList.contains('on');
     if (cardHover === 1 || panelHover) lastInsideAt = now;
+    if (dismissed >= 0 && natural !== dismissed && labelHover !== dismissed && cardHover !== dismissed && touchOpen !== dismissed) dismissed = -1;
     let want = panelOpen && now - lastInsideAt < 900 ? 1
       : natural >= 0 ? natural : labelHover >= 0 ? labelHover : focusIdx >= 0 ? focusIdx : cardHover >= 0 ? cardHover : panelHover ? 1 : touchOpen;
+    if (want === dismissed) want = -1;                                         // just closed with its ×
     if (want >= 0) lastWantAt = now;                                          // last real hover / tap
     else if (active >= 0 && now - lastWantAt < 200) want = active;           // a moment's grace to move from the stone onto its card
     S.hold = want;
@@ -541,7 +543,9 @@
       const room = Math.round(ay - 22 - top);
       // Projects, Skills and Experience take the middle of the screen; Education and Languages open over their own
       // stones, on their own side (phones: every card is full width anyway)
-      const centreX = active === 0 || active === 4 ? Math.max(10, Math.min(vw - cs.w - 10, ax - cs.w / 2)) : Math.max(10, (vw - cs.w) / 2);
+      // (the theme buttons run down the right edge on wider screens: cards stay clear of them)
+      const rightEdge = vw - (narrow ? 10 : 74);
+      const centreX = active === 0 || active === 4 ? Math.max(10, Math.min(rightEdge - cs.w, ax - cs.w / 2)) : Math.max(10, Math.min(rightEdge - cs.w, (vw - cs.w) / 2));
       const mh = narrow ? Math.max(160, vh - top - 120) : 2000;              // phones: the card may cover its stone rather than squeeze
       if (c._mh !== mh) { c._mh = mh; c.style.setProperty('--mh', mh + 'px'); size.delete(c); cs = sizeOf(c); }
       if (!narrow && cs.h > room) {
@@ -601,10 +605,16 @@
   document.querySelectorAll('.lv-gauge').forEach((g) => g.addEventListener('click', () => g.closest('.lv-row').classList.toggle('gauge-on')));
 
   // touch screens and phones: each card gets a × in its corner to close it
-  cards.forEach((c) => {
+  cards.forEach((c, i) => {
     const x = document.createElement('button');
     x.type = 'button'; x.className = 'lv-close'; x.textContent = '×'; x.setAttribute('aria-label', 'Close');
-    x.addEventListener('click', (e) => { e.stopPropagation(); touchOpen = -1; lastWantAt = 0; hidePanel(); });
+    x.addEventListener('click', (e) => {
+      e.stopPropagation(); hidePanel();
+      // closed means closed: whatever was holding the card open (a tap, the pointer resting on it, its Steam panel)
+      // lets go, and it stays shut until the pointer has left that stone or another one is picked
+      touchOpen = -1; cardHover = -1; panelHover = false; lastWantAt = 0; lastInsideAt = 0; dismissed = i;
+      if (document.activeElement && c.contains(document.activeElement)) document.activeElement.blur();
+    });
     c.appendChild(x);
   });
 
@@ -616,6 +626,7 @@
     if (e.pointerType === 'mouse' || !fireOn() || S.giftUp) return;
     if (e.target.closest && e.target.closest('.lv-card.on, .lv-track, .lv-quick, #btn-audio, #mini-ui, #lv-steam')) return;   // swiping inside an open card keeps it
     const i = e.target.closest && e.target.closest('.lv-label') ? Number(e.target.closest('.lv-label').dataset.i) : rockAt(e.clientX, e.clientY);
+    if (i >= 0) dismissed = -1;                                                 // a fresh tap may reopen a card that was just closed
     touchOpen = i >= 0 && touchOpen !== i ? i : -1;
   }, true);
   // a click on a stone shouldn't also send a shockwave through the wall

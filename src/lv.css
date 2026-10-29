@@ -538,3 +538,8 @@ body.lv-steam-on .lv-label { opacity: 0 !important; pointer-events: none !import
 .lv-orbit-core::after { right: -17px; transform: translateY(-50%) rotate(45deg) scale(calc(1 + max(0, var(--pull, 0)) * 0.6)); opacity: calc(0.45 + max(0, var(--pull, 0)) * 0.55); }
 @media (max-width: 700px) { .lv-orbit-zone { width: 140px; height: 110px; } .lv-orbit-core .lv-core-ico { margin: -15px 0 0 -15px; width: 30px; height: 30px; } }
 .lv-card.lv-skills h3 { text-align: center; padding-left: 38px; padding-right: 38px; }   /* the group name centred over its circle */
+
+/* Bugs form on short screens (a phone on its side): the form scrolls inside the screen instead of running off it */
+.lv-bugs { overflow-y: auto; }
+.lv-bugs-box { max-height: calc(100vh - 24px); overflow-y: auto; }
+@media (max-height: 520px) { .lv-bugs-box { padding: 14px 16px 12px; } .lv-bugs-box > p { margin-bottom: 8px; } .lv-bugs-box label { margin-bottom: 8px; } .lv-bugs-box textarea { height: 64px; } }

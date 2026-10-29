@@ -543,3 +543,6 @@ body.lv-steam-on .lv-label { opacity: 0 !important; pointer-events: none !import
 .lv-bugs { overflow-y: auto; }
 .lv-bugs-box { max-height: calc(100vh - 24px); overflow-y: auto; }
 @media (max-height: 520px) { .lv-bugs-box { padding: 14px 16px 12px; } .lv-bugs-box > p { margin-bottom: 8px; } .lv-bugs-box label { margin-bottom: 8px; } .lv-bugs-box textarea { height: 64px; } }
+
+/* a card that has only just opened ignores taps (see lv.js showCard) */
+.lv-card.opening, .lv-card.opening * { pointer-events: none !important; }

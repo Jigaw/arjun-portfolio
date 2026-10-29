@@ -40,7 +40,7 @@
   const HOLD = 850;   // ms of hovering before the full card bursts out of the stone's label
 
   // ---------- state ----------
-  let labelHover = -1, focusIdx = -1, dismissed = -1;
+  let labelHover = -1, focusIdx = -1, dismissed = -1, lastTapAt = -1e9;
   const hov = { i: -1, upAt: 0 };
   let active = -1, shownAt = 0, introDone = false, fallback = false;
   const seen = new Array(N).fill(false);
@@ -95,6 +95,12 @@
     c.classList.remove('out');
     void c.offsetWidth;
     c.classList.add('on');
+    // the tap that opened it must not also "click" whatever lands under the finger in the new card (a game row,
+    // a skill circle…): the card ignores taps for a moment after it opens
+    if (performance.now() - lastTapAt < 700) {                      // (touch only: a mouse moving onto the card must find it live)
+      c.classList.add('opening'); clearTimeout(c._opening);
+      c._opening = setTimeout(() => c.classList.remove('opening'), 450);
+    }
     c.setAttribute('aria-hidden', 'false');
     if (i === 2 && skillsBox) requestAnimationFrame(() => openOrbit(SKILL_GROUPS[0], true));
     pos[i].init = false; pos[i].side = 0;
@@ -627,7 +633,12 @@
     if (e.pointerType === 'mouse' || !fireOn() || S.giftUp) return;
     if (e.target.closest && e.target.closest('.lv-card.on, .lv-track, .lv-quick, #btn-audio, #mini-ui, #lv-steam')) return;   // swiping inside an open card keeps it
     const i = e.target.closest && e.target.closest('.lv-label') ? Number(e.target.closest('.lv-label').dataset.i) : rockAt(e.clientX, e.clientY);
-    if (i >= 0) dismissed = -1;                                                 // a fresh tap may reopen a card that was just closed
+    if (i >= 0) { dismissed = -1; lastTapAt = performance.now(); }            // a fresh tap may reopen a card that was just closed
+    if (i >= 0) {                                                              // the same tap's click (it comes a moment later) is spent here
+      const eat = (ev) => { ev.stopPropagation(); ev.preventDefault(); };
+      window.addEventListener('click', eat, { capture: true, once: true });
+      setTimeout(() => window.removeEventListener('click', eat, true), 500);
+    }
     touchOpen = i >= 0 && touchOpen !== i ? i : -1;
   }, true);
   // a click on a stone shouldn't also send a shockwave through the wall

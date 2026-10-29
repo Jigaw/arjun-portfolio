@@ -320,5 +320,22 @@ sub1("""        tone(d, t, 'sine', rndA(170, 210) - k * 50, rndA(70, 90) - k * 2
         for (let i = 0; i < 2; i++) nz(d, t + 0.05 + R() * 0.25, 'bandpass', rndA(2000, 4000), 2200, 2.5, 0.02, 0.001, 0.015);""",
 """        tone(d, t, 'sine', 130.8, 128, 0.03 + k * 0.025, 0.03, 0.6 + k * 0.3);       // a warm, muffled settle""")
 
+# nothing plays while the page is in the background (another tab / app, phone locked): the whole audio engine is
+# paused and resumed on return, and no sound is started while hidden (it would all burst out on return)
+sub1("""      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && audioCtx && audioCtx.state !== 'running' && audioEnabled) { try { audioCtx.resume(); } catch (e) { /* ignore */ } }
+      });""", """      const bgAudio = (hidden) => {
+        if (!audioCtx) return;
+        try { if (hidden) audioCtx.suspend(); else if (audioEnabled && audioCtx.state !== 'running') audioCtx.resume(); } catch (e) { /* ignore */ }
+      };
+      document.addEventListener('visibilitychange', () => bgAudio(document.hidden));
+      window.addEventListener('pagehide', () => bgAudio(true));
+      window.addEventListener('pageshow', () => bgAudio(document.hidden));""")
+sub1("""        if (audioEnabled && (!audioCtx || audioCtx.state !== 'running')) initAudio();""",
+     """        if (audioEnabled && !document.hidden && (!audioCtx || audioCtx.state !== 'running')) initAudio();""")
+n = s.count("if (!audioEnabled || ")
+assert n >= 12, n
+s = s.replace("if (!audioEnabled || ", "if (!audioEnabled || document.hidden || ")
+
 open('index.html', 'w', encoding='utf8').write(s)
 print('ok', len(s))

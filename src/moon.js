@@ -328,7 +328,7 @@ void main() {
         }
         function sound(kind, amt = 0) {
           try {
-            if (!audioCtx || !audioEnabled) return;
+            if (!audioCtx || !audioEnabled || document.hidden) return;
             const tone = (type, f0, f1, peak, len, at = 0) => {
               const t0 = audioCtx.currentTime + at, o = audioCtx.createOscillator(), g = audioCtx.createGain();
               o.type = type; o.frequency.setValueAtTime(f0, t0); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t0 + len * 0.8);
